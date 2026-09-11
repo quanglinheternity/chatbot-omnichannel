@@ -10,30 +10,6 @@ import {
 } from "@/features/common/schema"
 import { workspaceActionClient } from "@/lib/safe-action"
 
-export const disableBotForConversations = async (props: {
-  workspaceId: string
-  ids: string[]
-  userId: string
-}) => {
-  const conversations = await conversationService.findManyByIds({
-    workspaceId: props.workspaceId,
-    ids: props.ids,
-  })
-
-  const botResumeAt = await conversationService.disableBotState({
-    workspaceId: props.workspaceId,
-    conversations,
-    userId: props.userId,
-    triggerContext: {
-      triggerSource: "api",
-      triggerHandler: "disableBotAction",
-      triggerType: "conversation_transferred_to_human",
-    },
-  })
-
-  return { botResumeAt: botResumeAt?.getTime() ?? null }
-}
-
 export const disableBotAction = workspaceActionClient
   .bindArgsSchemas(workspaceIdrequestParams)
   .inputSchema(bulkUpdateIdsRequest)
@@ -46,10 +22,19 @@ export const disableBotAction = workspaceActionClient
       bindArgsParsedInputs: WorkspaceIdRequestParams
       parsedInput: BulkUpdateIdsRequest
       ctx: { user: UserModel }
-    }) =>
-      await disableBotForConversations({
+    }) => {
+      const botResumeAt = await conversationService.setBotEnabledByIds({
         workspaceId,
         ids: parsedInput.ids,
+        botEnabled: false,
         userId: ctx.user.id,
-      }),
+        triggerContext: {
+          triggerSource: "api",
+          triggerHandler: "disableBotAction",
+          triggerType: "conversation_transferred_to_human",
+        },
+      })
+
+      return { botResumeAt: botResumeAt?.getTime() ?? null }
+    },
   )
