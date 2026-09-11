@@ -20,7 +20,6 @@ import {
 } from "@chatbotx.io/integration-messenger"
 import type { FacebookButton } from "@chatbotx.io/integration-messenger/schema"
 import type { UserCustomSettings } from "@chatbotx.io/sdk"
-import { env } from "../../env"
 import { logger } from "../../lib/logger"
 import type { ExecuteStepProps } from "./flow-utils"
 import {
@@ -46,7 +45,7 @@ function buildWorkspaceCallToActions(
   const brandingUrl = buildBrandingUrl(
     ctx.platform.appUrl,
     "messenger",
-    env.NEXT_PUBLIC_EDITION === "community",
+    false, // unlocked for self-host
   )
   return messengerMenusToCallToActions(moveBrandingMenuLast(menus, brandingUrl))
 }
@@ -161,7 +160,7 @@ export async function setMessengerUserPersistentMenu(
   const brandingUrl = buildBrandingUrl(
     context.ctx.platform.appUrl,
     "messenger",
-    env.NEXT_PUBLIC_EDITION === "community",
+    false, // unlocked for self-host
   )
   const callToActions =
     menus.length === 0

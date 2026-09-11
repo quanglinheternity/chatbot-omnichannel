@@ -62,7 +62,8 @@ vi.mock("@chatbotx.io/redis", () => ({
   createRedisConnection: vi.fn(() => ({ on: vi.fn() })),
 }))
 const isCommunity = vi.fn(() => false)
-vi.mock("../src/keys", () => ({ isCommunity }))
+const getCommunityMaxWorkspaces = vi.fn(() => 1)
+vi.mock("../src/keys", () => ({ isCommunity, getCommunityMaxWorkspaces }))
 vi.mock("@chatbotx.io/utils", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@chatbotx.io/utils")>()
   return {
@@ -145,6 +146,7 @@ beforeEach(() => {
   update.mockClear()
   invalidateCacheByTags.mockClear()
   isCommunity.mockReset().mockReturnValue(false)
+  getCommunityMaxWorkspaces.mockReset().mockReturnValue(1)
   countWorkspaces.mockReset().mockResolvedValue(0)
   runExclusive
     .mockReset()
@@ -273,6 +275,18 @@ describe("WorkspaceService.create — community workspace limit", () => {
     })
     expect(insert).not.toHaveBeenCalled()
     expect(quotaEnforcementService.tryConsume).not.toHaveBeenCalled()
+  })
+
+  test("uses the configured Community workspace limit", async () => {
+    getCommunityMaxWorkspaces.mockReturnValue(10)
+    isCommunity.mockReturnValue(true)
+    countWorkspaces.mockResolvedValue(1)
+
+    await expect(workspaceService.create(createInput())).resolves.toEqual({
+      id: "ws-1",
+      organizationId: "org-1",
+    })
+    expect(insert).toHaveBeenCalledTimes(1)
   })
 
   test("keys the lock on data.ownerId when it differs from createdBy", async () => {
