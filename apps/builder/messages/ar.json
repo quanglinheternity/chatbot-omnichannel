@@ -1141,6 +1141,11 @@
       "minutes": "{count, plural, one {# دقيقة} other {# دقائق}}",
       "seconds": "{count, plural, one {# ثانية} other {# ثوانٍ}}"
     },
+    "botDisableDurationHours": {
+      "description": "بعد رد الموظف، أوقف الردود الآلية لعدد الساعات هذا. يستأنف البوت عمله عند وصول رسالة جديدة من العميل بعد انتهاء الإيقاف.",
+      "label": "مدة التحويل إلى الموظف",
+      "unit": "ساعة"
+    },
     "delayType": {
       "label": "نوع التأخير",
       "placeholder": "نوع التأخير"

@@ -1788,6 +1788,11 @@
       "minutes": "{count, plural, one {# minut} other {# minute}}",
       "seconds": "{count, plural, one {# secundă} other {# secunde}}"
     },
+    "botDisableDurationHours": {
+      "description": "Setează câte ore sunt suspendate răspunsurile automate după un răspuns uman.",
+      "label": "Pauză după răspuns uman",
+      "unit": "ore"
+    },
     "delayType": {
       "label": "Tip de întârziere",
       "placeholder": "Tip de întârziere"

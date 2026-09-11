@@ -1004,6 +1004,11 @@
       "minutes": "{count, plural, one {# Minute} other {# Minuten}}",
       "seconds": "{count, plural, one {# Sekunde} other {# Sekunden}}"
     },
+    "botDisableDurationHours": {
+      "description": "Legen Sie fest, wie viele Stunden automatische Antworten nach einer menschlichen Antwort pausieren.",
+      "label": "Pause nach menschlicher Übergabe",
+      "unit": "Stunden"
+    },
     "delayType": {
       "label": "Verzögerungstyp",
       "placeholder": "Verzögerungstyp"

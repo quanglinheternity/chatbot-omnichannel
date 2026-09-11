@@ -2641,6 +2641,11 @@
       "minutes": "{count, plural, one {# 分钟} other {# 分钟}}",
       "seconds": "{count, plural, one {# 秒} other {# 秒}}"
     },
+    "botDisableDurationHours": {
+      "description": "设置人工回复后暂停自动回复的小时数。",
+      "label": "人工接管暂停时间",
+      "unit": "小时"
+    },
     "sms": {
       "label": "短信"
     },

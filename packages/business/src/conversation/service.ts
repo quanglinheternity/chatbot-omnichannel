@@ -60,7 +60,8 @@ import { contactInboxService } from "../contact-inbox/service"
 import { notFoundException } from "../errors"
 import { logger } from "../logger"
 
-export const BOT_DISABLE_DURATION_MS = 24 * 60 * 60 * 1000
+const DEFAULT_BOT_DISABLE_DURATION_HOURS = 24
+const HOURS_TO_MILLISECONDS = 60 * 60 * 1000
 
 export type TriggerContext = {
   triggerSource: string
@@ -119,6 +120,21 @@ export type ConversationWithContactInboxes = ConversationModel & {
 }
 
 class ConversationService extends BaseService {
+  async getBotDisableDurationMs(
+    workspaceId: string,
+    tx: DatabaseClient = db,
+  ): Promise<number> {
+    const workspace = await tx.query.workspaceModel.findFirst({
+      where: { id: workspaceId },
+      columns: { botDisableDurationHours: true },
+    })
+
+    return (
+      (workspace?.botDisableDurationHours ??
+        DEFAULT_BOT_DISABLE_DURATION_HOURS) * HOURS_TO_MILLISECONDS
+    )
+  }
+
   async markAgentReplied(input: { id: string; workspaceId: string; at: Date }) {
     await db
       .update(conversationModel)
@@ -749,7 +765,7 @@ class ConversationService extends BaseService {
     botEnabled: boolean
     botResumeAt?: Date | null
     tx?: DatabaseClient
-  }): Promise<void> {
+  }): Promise<Date | null> {
     const { workspaceId, ids, botEnabled, tx = db } = props
     let botResumeAt: Date | null
     if (props.botResumeAt !== undefined) {
@@ -757,7 +773,9 @@ class ConversationService extends BaseService {
     } else if (botEnabled) {
       botResumeAt = null
     } else {
-      botResumeAt = new Date(Date.now() + BOT_DISABLE_DURATION_MS)
+      botResumeAt = new Date(
+        Date.now() + (await this.getBotDisableDurationMs(workspaceId, tx)),
+      )
     }
     await tx
       .update(conversationModel)
@@ -774,6 +792,8 @@ class ConversationService extends BaseService {
       eventType: RealtimeEventType.conversationUpdated,
       data: { conversationIds: ids, changes: { botEnabled } },
     })
+
+    return botResumeAt
   }
 
   async updateFollowed(props: {
@@ -1010,8 +1030,8 @@ class ConversationService extends BaseService {
     userId?: string
     triggerContext: TriggerContext
     tx?: DatabaseClient
-  }): Promise<void> {
-    await this.updateBotEnabled({
+  }): Promise<Date | null> {
+    const botResumeAt = await this.updateBotEnabled({
       workspaceId: props.workspaceId,
       ids: props.conversations.map((c) => c.id),
       botEnabled: false,
@@ -1034,6 +1054,8 @@ class ConversationService extends BaseService {
         metadata: { triggerContext: props.triggerContext },
       })
     }
+
+    return botResumeAt
   }
 
   async enableBotState(props: {

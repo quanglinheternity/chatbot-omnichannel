@@ -20,7 +20,7 @@ export const disableBotForConversations = async (props: {
     ids: props.ids,
   })
 
-  await conversationService.disableBotState({
+  const botResumeAt = await conversationService.disableBotState({
     workspaceId: props.workspaceId,
     conversations,
     userId: props.userId,
@@ -30,6 +30,8 @@ export const disableBotForConversations = async (props: {
       triggerType: "conversation_transferred_to_human",
     },
   })
+
+  return { botResumeAt: botResumeAt?.getTime() ?? null }
 }
 
 export const disableBotAction = workspaceActionClient
@@ -44,11 +46,10 @@ export const disableBotAction = workspaceActionClient
       bindArgsParsedInputs: WorkspaceIdRequestParams
       parsedInput: BulkUpdateIdsRequest
       ctx: { user: UserModel }
-    }) => {
+    }) =>
       await disableBotForConversations({
         workspaceId,
         ids: parsedInput.ids,
         userId: ctx.user.id,
-      })
-    },
+      }),
   )

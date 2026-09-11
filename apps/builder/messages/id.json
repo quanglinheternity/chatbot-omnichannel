@@ -1004,6 +1004,11 @@
       "minutes": "{count, plural, one {# menit} other {# menit}}",
       "seconds": "{count, plural, one {# detik} other {# detik}}"
     },
+    "botDisableDurationHours": {
+      "description": "Atur berapa jam balasan otomatis dijeda setelah balasan manusia.",
+      "label": "Jeda setelah balasan manusia",
+      "unit": "jam"
+    },
     "delayType": {
       "label": "Jenis Penundaan",
       "placeholder": "Jenis Penundaan"

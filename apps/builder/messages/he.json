@@ -3691,6 +3691,11 @@
       "minutes": "{count, plural, one {# דקה} other {# דקות}}",
       "seconds": "{count, plural, one {# שנייה} other {# שניות}}"
     },
+    "botDisableDurationHours": {
+      "description": "הגדירו לכמה שעות יושהו התשובות האוטומטיות לאחר מענה אנושי.",
+      "label": "השהיה לאחר מענה אנושי",
+      "unit": "שעות"
+    },
     "delayType": {
       "label": "סוג השהיה",
       "placeholder": "סוג השהיה"

@@ -1004,6 +1004,11 @@
       "minutes": "{count, plural, one {# minuutti} other {# minuuttia}}",
       "seconds": "{count, plural, one {# sekunti} other {# sekuntia}}"
     },
+    "botDisableDurationHours": {
+      "description": "Määritä, kuinka monta tuntia automaattiset vastaukset ovat tauolla ihmisen vastauksen jälkeen.",
+      "label": "Tauko ihmisen vastauksen jälkeen",
+      "unit": "tuntia"
+    },
     "delayType": {
       "label": "Viiveen tyyppi",
       "placeholder": "Viiveen tyyppi"

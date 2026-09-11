@@ -28,10 +28,7 @@ import {
 import { Controller, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { disableBotAction } from "@/features/conversations/actions/disable-bot.action"
-import {
-  BOT_DISABLE_DURATION_MS,
-  isConversationActive,
-} from "@/features/conversations/utils/bot-state"
+import { isConversationActive } from "@/features/conversations/utils/bot-state"
 import { InboxIcon } from "@/features/inboxes/components/inbox-icon"
 import { MediaLibraryTrigger } from "@/features/media-library/components/media-library-trigger"
 import type { ListFilesResponse } from "@/features/media-library/schema"
@@ -113,11 +110,11 @@ export const MessageInput = () => {
   const { execute: disableBot } = useAction(
     disableBotAction.bind(null, conversation?.workspaceId ?? ""),
     {
-      onSuccess: () => {
+      onSuccess: ({ data }) => {
         if (conversation) {
           updateConversation(conversation.id, {
             botEnabled: false,
-            botResumeAt: new Date(Date.now() + BOT_DISABLE_DURATION_MS),
+            botResumeAt: data?.botResumeAt ? new Date(data.botResumeAt) : null,
           })
         }
       },

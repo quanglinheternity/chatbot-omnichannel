@@ -306,6 +306,11 @@
       "minutes": "{count, plural, one {# minuto} other {# minuti}}",
       "seconds": "{count, plural, one {# secondo} other {# secondi}}"
     },
+    "botDisableDurationHours": {
+      "description": "Imposta per quante ore le risposte automatiche vengono sospese dopo una risposta umana.",
+      "label": "Pausa dopo una risposta umana",
+      "unit": "ore"
+    },
     "delayType": {
       "label": "Tipo di ritardo",
       "placeholder": "Tipo di ritardo"

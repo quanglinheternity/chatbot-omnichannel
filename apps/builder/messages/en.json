@@ -1150,6 +1150,11 @@
       "minutes": "{count, plural, one {# minute} other {# minutes}}",
       "seconds": "{count, plural, one {# second} other {# seconds}}"
     },
+    "botDisableDurationHours": {
+      "description": "After a human replies, pause automated replies for this many hours. The bot resumes when a new customer message arrives after the pause.",
+      "label": "Human handoff pause",
+      "unit": "hours"
+    },
     "delayType": {
       "label": "Delay Type",
       "placeholder": "Delay Type"

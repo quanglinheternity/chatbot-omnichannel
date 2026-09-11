@@ -1142,6 +1142,11 @@
       "minutes": "{count, plural, one {# phút} other {# phút}}",
       "seconds": "{count, plural, one {# giây} other {# giây}}"
     },
+    "botDisableDurationHours": {
+      "description": "Sau khi nhân viên trả lời, tạm dừng bot trong số giờ này. Bot sẽ hoạt động lại khi có tin nhắn mới của khách sau thời gian tạm dừng.",
+      "label": "Thời gian chuyển sang người",
+      "unit": "giờ"
+    },
     "delayType": {
       "label": "Loại trì hoãn",
       "placeholder": "Loại trì hoãn"

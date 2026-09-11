@@ -2,21 +2,27 @@
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 
-const { emitSpy, returningSpy, setSpy } = vi.hoisted(() => {
-  const returningSpy = vi.fn().mockResolvedValue([{ id: "conv-1" }])
-  const whereSpy = vi.fn(() => ({ returning: returningSpy }))
-  const setSpy = vi.fn(() => ({ where: whereSpy }))
+const { emitSpy, getBotDisableDurationMsSpy, returningSpy, setSpy } =
+  vi.hoisted(() => {
+    const returningSpy = vi.fn().mockResolvedValue([{ id: "conv-1" }])
+    const whereSpy = vi.fn(() => ({ returning: returningSpy }))
+    const setSpy = vi.fn(() => ({ where: whereSpy }))
 
-  return {
-    emitSpy: vi.fn(),
-    returningSpy,
-    setSpy,
-    whereSpy,
-  }
-})
+    return {
+      emitSpy: vi.fn(),
+      getBotDisableDurationMsSpy: vi
+        .fn()
+        .mockResolvedValue(24 * 60 * 60 * 1000),
+      returningSpy,
+      setSpy,
+      whereSpy,
+    }
+  })
 
 vi.mock("@chatbotx.io/business", () => ({
-  BOT_DISABLE_DURATION_MS: 24 * 60 * 60 * 1000,
+  conversationService: {
+    getBotDisableDurationMs: getBotDisableDurationMsSpy,
+  },
 }))
 
 vi.mock("@chatbotx.io/database/client", () => ({
@@ -86,5 +92,25 @@ describe("HandoffExecutorService", () => {
         workspaceId: "ws-1",
       }),
     )
+  })
+
+  test("uses the workspace-specific pause duration", async () => {
+    getBotDisableDurationMsSpy.mockResolvedValueOnce(60 * 60 * 1000)
+    const { HandoffExecutorService } = await import(
+      "../src/trigger/services/handoff-executor.service"
+    )
+
+    await new HandoffExecutorService().execute({
+      contactId: "contact-1",
+      conversationId: "conv-1",
+      reason: "needs_human",
+      source: "ai_system_tool",
+      workspaceId: "ws-1",
+    })
+
+    expect(setSpy).toHaveBeenCalledWith({
+      botEnabled: false,
+      botResumeAt: new Date("2026-01-01T01:00:00.000Z"),
+    })
   })
 })
