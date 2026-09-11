@@ -649,4 +649,32 @@ describe("integration worker — incomingMessage case: profile refresh vs. autom
     expect(mockContactProfileRefresh).not.toHaveBeenCalled()
     expect(mockAutomatedResponseEnqueue).toHaveBeenCalled()
   })
+
+  test("passes a paused conversation's resume time to automated-response dispatch", async () => {
+    const deferUntil = new Date("2026-01-01T01:00:00.000Z")
+    mockResolveIncomingTextRouting.mockResolvedValue({
+      type: "automatedResponse",
+      conversation: fakeConversation,
+      deferUntil,
+    })
+    const [integrationWorker] = workerState.capturedWorkers
+
+    await integrationWorker?.processor({
+      data: {
+        type: "incomingMessage",
+        data: {
+          integrationType: "messenger",
+          integrationIdentifier: "inbox-1",
+          payload: {},
+        },
+      },
+    })
+
+    expect(mockAutomatedResponseEnqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messageId: "msg-created",
+        deferUntil,
+      }),
+    )
+  })
 })

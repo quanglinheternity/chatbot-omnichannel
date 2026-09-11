@@ -8,7 +8,12 @@ type IncomingRoutingDecision =
       conversation: ConversationModel
       challenge: NonNullable<ConversationAttributes["challenge"]>
     }
-  | { type: "automatedResponse"; conversation: ConversationModel }
+  | {
+      type: "automatedResponse"
+      conversation: ConversationModel
+      /** When set, hold the response until the human-handoff window expires. */
+      deferUntil?: Date
+    }
 
 export async function resolveIncomingTextRouting(props: {
   conversation: ConversationModel
@@ -25,6 +30,17 @@ export async function resolveIncomingTextRouting(props: {
 
   const conversation = props.conversation
   if (!(await props.isConversationActive(conversation))) {
+    if (
+      props.hasText &&
+      conversation.botResumeAt &&
+      conversation.botResumeAt.getTime() > Date.now()
+    ) {
+      return {
+        type: "automatedResponse",
+        conversation,
+        deferUntil: conversation.botResumeAt,
+      }
+    }
     return { type: "none" }
   }
 
