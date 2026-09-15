@@ -87,6 +87,12 @@ const handle = async (request: Request): Promise<Response> => {
   // Use the public URL (host behind the proxy), not the raw internal request URL,
   // so the relay host comparison matches the registered platform host.
   const url = getPublicUrlFromRequest(request)
+  // Better Auth builds redirects and callback URLs from request.url. Behind a
+  // reverse proxy that URL can be an internal origin (for example localhost),
+  // so pass it a request re-homed to the public origin while preserving the
+  // original method, headers, and body.
+  const publicRequest =
+    url.toString() === request.url ? request : new Request(url, request)
   const isCallback = url.pathname.includes("/callback/")
   const state = url.searchParams.get("state")
 
@@ -123,8 +129,8 @@ const handle = async (request: Request): Promise<Response> => {
 
     // Re-home a baseURL-resolved verification redirect onto the branded host
     // the user is on (magic-link/verify, verify-email, reset-password).
-    const response = await instance.handler(request)
-    return rewriteAuthRedirectToPublicHost(request, response)
+    const response = await instance.handler(publicRequest)
+    return rewriteAuthRedirectToPublicHost(publicRequest, response)
   })
 }
 
