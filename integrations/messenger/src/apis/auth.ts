@@ -172,17 +172,12 @@ const FACEBOOK_OAUTH_BASE = "https://www.facebook.com"
 export const MESSENGER_SCOPES = [
   "email",
   "public_profile",
-  "pages_manage_ads",
   "pages_manage_metadata",
   "pages_read_engagement",
-  "pages_read_user_content",
-  "pages_manage_posts",
-  "pages_manage_engagement",
   "pages_messaging",
   "pages_show_list",
   "business_management",
   "pages_utility_messaging",
-  "page_events",
 ]
 
 /**
@@ -193,8 +188,7 @@ export const MESSENGER_SCOPES = [
  * page-connect step can reuse it instead of re-running OAuth.
  */
 export const MESSENGER_REUSE_REQUIRED_SCOPES = MESSENGER_SCOPES.filter(
-  (scope) =>
-    scope !== "email" && scope !== "public_profile" && scope !== "page_events",
+  (scope) => scope !== "email" && scope !== "public_profile",
 )
 
 /**
