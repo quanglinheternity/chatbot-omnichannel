@@ -39,25 +39,26 @@ describe("enterprise entitlements", () => {
     await expect(hasEnterpriseFeatures()).resolves.toBe(true)
   })
 
-  test("disables enterprise features for community", async () => {
+  test("enables enterprise features for self-hosted community", async () => {
     const { hasEnterpriseFeatures } = await import("../src/user/entitlements")
 
-    await expect(hasEnterpriseFeatures()).resolves.toBe(false)
+    await expect(hasEnterpriseFeatures()).resolves.toBe(true)
     expect(mocks.getLicenseStatus).not.toHaveBeenCalled()
   })
 
-  test("enables enterprise features only when the license is valid", async () => {
+  test("enables enterprise features for self-hosted enterprise without a license", async () => {
     mocks.isEnterprise.mockReturnValue(true)
     const { hasEnterpriseFeatures } = await import("../src/user/entitlements")
 
-    await expect(hasEnterpriseFeatures()).resolves.toBe(false)
+    await expect(hasEnterpriseFeatures()).resolves.toBe(true)
+    expect(mocks.getLicenseStatus).not.toHaveBeenCalled()
 
     mocks.getLicenseStatus.mockResolvedValue({ state: "valid" })
     await expect(hasEnterpriseFeatures()).resolves.toBe(true)
   })
 
   test("treats an expired license as disabled", async () => {
-    mocks.isEnterprise.mockReturnValue(true)
+    mocks.isCloud.mockReturnValue(true)
     mocks.getLicenseStatus.mockResolvedValue({ state: "expired" })
     const { hasEnterpriseFeatures } = await import("../src/user/entitlements")
 
@@ -73,26 +74,21 @@ describe("assertEnterpriseFeatures", () => {
     mocks.getLicenseStatus.mockResolvedValue({ state: "missing" })
   })
 
-  test("throws enterpriseFeatureRequired (403) on community", async () => {
+  test("resolves for self-hosted community", async () => {
     const { assertEnterpriseFeatures } = await import(
       "../src/user/entitlements"
     )
 
-    await expect(assertEnterpriseFeatures()).rejects.toMatchObject({
-      code: "enterpriseFeatureRequired",
-      httpStatusCode: 403,
-    })
+    await expect(assertEnterpriseFeatures()).resolves.toBeUndefined()
   })
 
-  test("throws when enterprise edition has no valid license", async () => {
+  test("resolves for self-hosted enterprise without a license", async () => {
     mocks.isEnterprise.mockReturnValue(true)
     const { assertEnterpriseFeatures } = await import(
       "../src/user/entitlements"
     )
 
-    await expect(assertEnterpriseFeatures()).rejects.toMatchObject({
-      code: "enterpriseFeatureRequired",
-    })
+    await expect(assertEnterpriseFeatures()).resolves.toBeUndefined()
   })
 
   test("resolves when the license is valid", async () => {
