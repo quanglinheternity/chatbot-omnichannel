@@ -9,6 +9,7 @@ import {
   possibleErrorsOnMutatingResource,
 } from "@/lib/orpc/orpc-error-helper"
 import { paginateInMemory, publicListRequest } from "@/lib/public-api/list"
+import { assertWorkspaceNotBlocked } from "@/lib/workspace-quota"
 import { workspaceTokenAuthAPIForScope } from "@/orpc"
 import { listInboxTeams } from "../queries"
 import {
@@ -21,7 +22,9 @@ import { inboxTeamResource } from "../schema/resource"
 
 const workspaceTokenAuthAPI = workspaceTokenAuthAPIForScope("inbox")
 
-const inboxTeamIdPathParam = z.object({ id: zodBigintAsString() })
+const inboxTeamIdPathParam = z.object({
+  id: zodBigintAsString().describe("Team id. Get it from `inboxTeams.list`."),
+})
 
 export const inboxTeamsPublicRouter = {
   list: workspaceTokenAuthAPI
@@ -29,6 +32,8 @@ export const inboxTeamsPublicRouter = {
       method: "GET",
       path: "/v1/teams",
       summary: "List teams",
+      description:
+        "Use this to find inbox-team ids before inspecting one with `inboxTeams.get` or assigning a conversation to it. Returns the teams in this workspace.",
       tags: ["Teams"],
     })
     .input(publicListRequest)
@@ -45,7 +50,9 @@ export const inboxTeamsPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/teams/{id}",
-      summary: "Get a team by id",
+      summary: "Get team",
+      description:
+        "Returns one inbox team and its members. Use `inboxTeams.list` to find its id first.",
       tags: ["Teams"],
     })
     .input(inboxTeamIdPathParam)
@@ -63,36 +70,40 @@ export const inboxTeamsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/teams",
-      summary: "Create a team",
+      summary: "Create team",
+      description:
+        "Adds an inbox team that a conversation can be assigned to. Use `inboxTeams.list` first to avoid duplicating an existing team.",
       successStatus: 201,
       tags: ["Teams"],
     })
     .input(createInboxTeamRequest)
     .output(inboxTeamResource)
     .errors(possibleErrorsOnCreatingResource)
-    .handler(
-      async ({ context, input }) =>
-        await inboxTeamService.create({
-          workspaceId: context.workspace.id,
-          data: input,
-        }),
-    ),
+    .handler(async ({ context, input }) => {
+      await assertWorkspaceNotBlocked(context.workspace.ownerId)
+      return await inboxTeamService.create({
+        workspaceId: context.workspace.id,
+        data: input,
+      })
+    }),
 
   update: workspaceTokenAuthAPI
     .route({
       method: "PUT",
       path: "/v1/teams/{id}",
-      summary: "Update a team",
+      summary: "Update team",
+      description:
+        "Changes an inbox team's settings. Call `inboxTeams.get` to inspect current values first.",
       tags: ["Teams"],
     })
     .input(updateInboxTeamRequest.and(inboxTeamIdPathParam))
     .output(inboxTeamResource)
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
-      const workspaceId = context.workspace.id
+      await assertWorkspaceNotBlocked(context.workspace.ownerId)
       const { id, ...data } = input
       return await inboxTeamService.update(
-        { workspaceId, inboxTeamId: id },
+        { workspaceId: context.workspace.id, inboxTeamId: id },
         data,
       )
     }),
@@ -101,7 +112,9 @@ export const inboxTeamsPublicRouter = {
     .route({
       method: "DELETE",
       path: "/v1/teams/{id}",
-      summary: "Delete a team",
+      summary: "Delete team",
+      description:
+        "Permanently deletes an inbox team. Use `inboxTeams.list` to find its id first.",
       successStatus: 204,
       tags: ["Teams"],
     })
@@ -118,24 +131,29 @@ export const inboxTeamsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/teams/{id}/members",
-      summary: "Add members to a team",
+      summary: "Add members to team",
+      description:
+        "Adds the given user ids to an inbox team's membership. Use `inboxTeams.removeMembers` to remove them.",
       tags: ["Teams"],
     })
     .input(addInboxTeamMemberRequest.and(inboxTeamIdPathParam))
     .output(inboxTeamResource)
     .errors(possibleErrorsOnMutatingResource)
-    .handler(async ({ context, input }) =>
-      inboxTeamService.addMembers(
+    .handler(async ({ context, input }) => {
+      await assertWorkspaceNotBlocked(context.workspace.ownerId)
+      return await inboxTeamService.addMembers(
         { workspaceId: context.workspace.id, inboxTeamId: input.id },
         input.userIds,
-      ),
-    ),
+      )
+    }),
 
   removeMembers: workspaceTokenAuthAPI
     .route({
       method: "DELETE",
       path: "/v1/teams/{id}/members",
-      summary: "Remove members from a team",
+      summary: "Remove members from team",
+      description:
+        "Removes the given user ids from an inbox team's membership. Use `inboxTeams.addMembers` to add them.",
       tags: ["Teams"],
     })
     .input(addInboxTeamMemberRequest.and(inboxTeamIdPathParam))

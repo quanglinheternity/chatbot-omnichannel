@@ -253,7 +253,7 @@
     "dateFilterPreset": "Forudindstillet datofilter",
     "noResults": "Ingen resultater.",
     "noData": "Ingen data",
-    "retentionNotice": "Kun data fra de seneste {days} dage gemmes.",
+    "errorLogRetentionNotice": "Kun fejllogs fra de seneste {days} dage gemmes.",
     "comingSoon": "Kommer snart",
     "unknown": "Ukendt",
     "pagination": {
@@ -510,6 +510,35 @@
       "description": "\"{name}\" will continue sending to recipients who have not received it yet."
     }
   },
+  "commentAutomation": {
+    "stats": {
+      "sent": "Sendt",
+      "delivered": "Leveret",
+      "seen": "Set",
+      "clicked": "Klikket",
+      "failed": "Mislykkedes",
+      "missed": "Oversete",
+      "noContacts": "Ingen kontakter fundet",
+      "noComment": "(ingen tekst)",
+      "pageInfo": "Side {page} af {pageCount}",
+      "selectedAll": "Alle valgt",
+      "selectedCount": "{count} valgt",
+      "tagAllDialogDescription": "Der føjes tags til alle valgte kontakter.",
+      "tagDialogDescription": "Der føjes tags til {count} kontakt(er).",
+      "tagQueued": "Tagger {count} kontakter i baggrunden.",
+      "loadingMore": "Indlæser mere...",
+      "receivers": "Modtagere"
+    },
+    "missReasons": {
+      "outsideSchedule": "Uden for tidsplan",
+      "postNotMatched": "Opslag ikke målrettet",
+      "commentIsReply": "Kommentarsvar",
+      "keywordsNotMatched": "Nøgleord matchede ikke",
+      "contactNotNew": "Kontakten er ikke ny",
+      "alreadyRepliedOnPost": "Allerede besvaret på dette opslag",
+      "engagedOnOtherPost": "Har allerede interageret på et andet opslag"
+    }
+  },
   "condition": {
     "yes": "Ja",
     "no": "Nej",
@@ -698,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "Konfigurations-ID for marketingbeskeder",
+      "description": "Konfigurations-ID til Facebook Login for Business, der bruges til at anmode om tilladelsen marketing_messages_messenger."
+    },
     "omnichannel": {
       "label": "Omnichannel"
     },
@@ -833,9 +866,6 @@
     },
     "aiFunction": {
       "label": "AI Function"
-    },
-    "aiTrigger": {
-      "label": "AI Trigger"
     },
     "alphanumericLength": {
       "label": "Alphanumeric Length"
@@ -2438,6 +2468,41 @@
   "general": {
     "title": "Generelt"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Dette fjerner kun kampagnen fra ChatbotX. Meta-beskedkampagnen kører videre — sæt den på pause eller slet den i Ads Manager.",
+    "title": "Facebook Marketing Messages",
+    "description": "Øg engagement og salg med personlige kampagnebeskeder på Messenger.",
+    "create": "Opret ny",
+    "grantTitle": "Giv Facebook-adgang",
+    "grantDescription": "Giv adgang for at bruge funktionen Marketingbeskeder",
+    "grantAction": "Giv adgang",
+    "reconnect": "Tilslut igen",
+    "expiredWarning": "Din Facebook-adgang er udløbet eller blev tilbagekaldt. Tilslut igen for at oprette eller redigere kampagner. Eksisterende kampagner vises nedenfor og er skrivebeskyttede, indtil du tilslutter igen.",
+    "fields": {
+      "image": "Billede",
+      "video": "Video",
+      "page": "Facebook-side",
+      "adAccount": "Annoncekonto",
+      "budgetType": "Budgettype",
+      "budget": "Budget",
+      "daily": "Dagligt budget",
+      "lifetime": "Samlet budget",
+      "templateType": "Beskedtype",
+      "text": "Tekst",
+      "button": "Knap",
+      "media": "Medie",
+      "generic": "Generisk",
+      "greeting": "Hilsen",
+      "quickReplies": "Hurtige svar",
+      "elements": "Kort"
+    },
+    "errors": {
+      "notConfigured": "Facebook Marketing Messages er ikke konfigureret. Bed din administrator om at angive konfigurations-id'et for marketingbeskeder.",
+      "notGranted": "Giv adgang for at bruge funktionen Marketingbeskeder.",
+      "tosNotAccepted": "For at bruge denne funktion skal du acceptere vilkårene for tilpassede objekter på {url}",
+      "notFound": "Marketingbesked blev ikke fundet."
+    }
+  },
   "facebookAds": {
     "title": "Facebook Annoncer",
     "setting": {
@@ -3417,10 +3482,6 @@
       "description": "AI Agenter beskrivelse",
       "title": "AI-agenter"
     },
-    "aiTriggers": {
-      "description": "AI Triggers beskrivelse",
-      "title": "AI Triggers"
-    },
     "automatedResponses": {
       "title": "Nøgleord"
     },
@@ -4296,9 +4357,9 @@
     "trackCommentsOn": "Track kommentarer på",
     "trackCommentsOnDescription": "Apply denne automatisering til alle opslag på din Side, eller narrow it til specific opslag du vælg.",
     "privateReply": "Private svar (indbakke)",
-    "privateReplyDescription": "Send a private besked til den commenter's indbakke. Choose AI Agent, a fixed tekst skabelon (spintax supported), a chatbot flow, eller deaktivér.",
+    "privateReplyDescription": "Send a private besked til den commenter's indbakke. Choose AI Agent, a fixed tekst skabelon, a chatbot flow, eller deaktivér.",
     "publicReply": "Public svar til kommentar",
-    "publicReplyDescription": "Opslag a public svar directly under den kommentar. Supports up til 10 tekst templates (spintax supported), AI Agent, a chatbot flow, eller ingen svar.",
+    "publicReplyDescription": "Opslag a public svar directly under den kommentar. Supports up til 10 tekst templates, AI Agent, a chatbot flow, eller ingen svar. Hver besked sendes som et separat svar.",
     "replyMessage": "Svar besked",
     "replyMessagePlaceholder": "Indtast svar besked...",
     "includeKeywordsType": "Svar til",
@@ -4366,8 +4427,8 @@
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Fortsæt replying til brugere who har already commented på din anden opslag.",
       "ignoreCommentReplies": "Don't svar til replies til kommentarer",
       "ignoreCommentRepliesDescription": "Spring over automatisering for kommentarer at er replies til anden kommentarer, ikke top-level kommentarer.",
-      "trackUserTags": "Track hvis a bruger tags anden brugere",
-      "trackUserTagsDescription": "Udløser automatisering når a bruger tags eller mentions another bruger i their kommentar."
+      "trackUserTags": "Spor om en bruger tagger andre brugere",
+      "trackUserTagsDescription": "Brug '{{total_tagged}}' til at se, hvor mange brugere der blev tagget. Brug '{{total_new_tagged}}' til at se, hvor mange af de taggede personer der ikke er på kontaktlisten."
     },
     "hideComments": {
       "all": "Hide alle kommentarer",
@@ -4399,9 +4460,9 @@
     "trackCommentsOn": "Track kommentarer på",
     "trackCommentsOnDescription": "Apply denne automatisering til alle opslag på din connected konto, eller narrow it til specific opslag du vælg.",
     "privateReply": "Private svar (indbakke)",
-    "privateReplyDescription": "Send a private besked til den commenter's indbakke. Choose AI Agent, a fixed tekst skabelon (spintax supported), a chatbot flow, eller deaktivér.",
+    "privateReplyDescription": "Send a private besked til den commenter's indbakke. Choose AI Agent, a fixed tekst skabelon, a chatbot flow, eller deaktivér.",
     "publicReply": "Public svar til kommentar",
-    "publicReplyDescription": "Opslag a public svar directly under den kommentar. Supports up til 10 tekst templates (spintax supported), AI Agent, a chatbot flow, eller ingen svar.",
+    "publicReplyDescription": "Opslag a public svar directly under den kommentar. Supports up til 10 tekst templates, AI Agent, a chatbot flow, eller ingen svar. Hver besked sendes som et separat svar.",
     "replyMessage": "Svar besked",
     "replyMessagePlaceholder": "Indtast svar besked...",
     "includeKeywordsType": "Svar til",
@@ -4467,7 +4528,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "Svar til brugere who commented på anden opslag",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Fortsæt replying til brugere who har already commented på din anden opslag.",
       "ignoreCommentReplies": "Don't svar til replies til kommentarer",
-      "ignoreCommentRepliesDescription": "Spring over automatisering for kommentarer at er replies til anden kommentarer, ikke top-level kommentarer."
+      "ignoreCommentRepliesDescription": "Spring over automatisering for kommentarer at er replies til anden kommentarer, ikke top-level kommentarer.",
+      "trackUserTags": "Spor om en bruger tagger andre brugere",
+      "trackUserTagsDescription": "Brug '{{total_tagged}}' til at se, hvor mange brugere der blev tagget. Brug '{{total_new_tagged}}' til at se, hvor mange af de taggede personer der ikke er på kontaktlisten."
     },
     "hideComments": {
       "all": "Hide alle kommentarer",

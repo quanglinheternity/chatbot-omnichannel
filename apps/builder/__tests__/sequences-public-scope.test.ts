@@ -25,6 +25,7 @@ vi.mock("@chatbotx.io/business", () => ({
 
 vi.mock("@chatbotx.io/business/sequence", () => ({
   sequenceService: {
+    list: vi.fn(),
     findWithSteps: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock("@chatbotx.io/business/sequence", () => ({
     assertOwned: vi.fn(),
     upsertStep: vi.fn(),
     deleteStep: vi.fn(),
+    listStepContactsPage: vi.fn(),
   },
 }))
 
@@ -51,13 +53,6 @@ vi.mock("@/env", () => ({ isCloud: () => true }))
 
 vi.mock("@/middlewares/auth", () => ({
   authMiddleware: vi.fn(),
-}))
-
-// The sequences router's queries hit the database at import time
-// (`@chatbotx.io/database/client`); never reached on the FORBIDDEN path this
-// test exercises, but the import chain must not try to open a connection.
-vi.mock("../src/features/sequences/queries", () => ({
-  listSequences: vi.fn(),
 }))
 
 const { call } = await import("@orpc/server")
@@ -99,8 +94,8 @@ describe("real router: sequences public API scope wiring", () => {
 
   test("null scopes (unrestricted) passes the real GET /v1/sequences route", async () => {
     findWorkspaceByTokenHash.mockResolvedValue(authResult(null))
-    const { listSequences } = await import("../src/features/sequences/queries")
-    vi.mocked(listSequences).mockResolvedValue({
+    const { sequenceService } = await import("@chatbotx.io/business/sequence")
+    vi.mocked(sequenceService.list).mockResolvedValue({
       data: [],
       pageCount: 1,
     } as never)
@@ -125,7 +120,11 @@ describe("real router: sequences public API scope wiring", () => {
     findWorkspaceByTokenHash.mockResolvedValue(authResult(["contacts"]))
 
     await expect(
-      invoke(sequencesPublicRouter[key], { id: "seq-1", stepId: "step-1" }),
+      invoke(sequencesPublicRouter[key], {
+        id: "seq-1",
+        stepId: "step-1",
+        eventType: "message:sent",
+      }),
     ).rejects.toMatchObject({
       code: "FORBIDDEN",
       message: "Token is not authorized for the 'broadcasts' scope",

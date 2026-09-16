@@ -1,13 +1,61 @@
-import { and, db, eq, inArray, ne, sql } from "@chatbotx.io/database/client"
+import {
+  and,
+  db,
+  eq,
+  inArray,
+  ne,
+  relationsFilterToSQL,
+  sql,
+} from "@chatbotx.io/database/client"
+import {
+  type FBCommentAutomationType,
+  fbCommentAutomationTypes,
+  type IgCommentAutomationType,
+  igCommentAutomationTypes,
+  normalizeReplyTexts,
+} from "@chatbotx.io/database/partials"
 import {
   contactInboxModel,
   fbCommentAutomationModel,
   fbCommentAutomationReplyModel,
 } from "@chatbotx.io/database/schema"
+import type { FBCommentAutomationModel } from "@chatbotx.io/database/types"
+import {
+  getPaginationWithDefaults,
+  likeContains,
+  parseOrderByAsObject,
+} from "@chatbotx.io/database/utils"
 import { createId } from "@chatbotx.io/utils"
 import { formatInTimeZone } from "date-fns-tz"
 import { BaseService } from "../base.service"
+import { notFoundException } from "../errors"
+import { resolveFolderIdFilter } from "../lib/folder-filter"
 import { assertDeletable } from "../template/installed-resource.service"
+
+type ListFbCommentsInput = {
+  workspaceId: string
+  page?: number | null
+  perPage?: number | null
+  sort?: { id: string; desc: boolean }[] | null
+  folderId?: string | null
+  includeAllFolders?: boolean
+  name?: string | null
+  isActive?: boolean | null
+}
+
+type ListFbCommentsResult = {
+  data: FBCommentAutomationModel[]
+  pageCount: number
+}
+
+function resolveIsActiveFilter(isActive?: boolean | null): boolean | undefined {
+  return isActive !== undefined && isActive !== null ? isActive : undefined
+}
+
+type FbCommentAutomationWriteData = Omit<
+  typeof fbCommentAutomationModel.$inferInsert,
+  "id" | "workspaceId" | "type"
+>
 
 class FbCommentAutomationService extends BaseService {
   findActiveAutomations(props: {
@@ -128,6 +176,7 @@ class FbCommentAutomationService extends BaseService {
   async deleteMany(input: {
     workspaceId: string
     ids: string[]
+    types: FBCommentAutomationType[]
   }): Promise<void> {
     if (input.ids.length === 0) {
       return
@@ -143,8 +192,234 @@ class FbCommentAutomationService extends BaseService {
         and(
           eq(fbCommentAutomationModel.workspaceId, input.workspaceId),
           inArray(fbCommentAutomationModel.id, input.ids),
+          inArray(fbCommentAutomationModel.type, input.types),
         ),
       )
+  }
+
+  async list(input: ListFbCommentsInput): Promise<ListFbCommentsResult> {
+    // No folderId in the URL means the root view, which must scope to unfiled
+    // automations only — treating it the same as "not filtered at all" (the
+    // previous behaviour) surfaced every automation regardless of which folder
+    // it had been moved into.
+    const where = {
+      workspaceId: input.workspaceId,
+      type: fbCommentAutomationTypes.enum.messenger,
+      folderId: resolveFolderIdFilter(input.folderId, input.includeAllFolders),
+      name: input.name ? { ilike: likeContains(input.name) } : undefined,
+      isActive: resolveIsActiveFilter(input.isActive),
+    }
+
+    const pagination = getPaginationWithDefaults(input)
+    const orderBy = parseOrderByAsObject(fbCommentAutomationModel, input)
+
+    const [data, total] = await Promise.all([
+      db.query.fbCommentAutomationModel.findMany({
+        where,
+        orderBy,
+        ...pagination,
+      }),
+      db.$count(
+        fbCommentAutomationModel,
+        relationsFilterToSQL(fbCommentAutomationModel, where),
+      ),
+    ])
+
+    const pageCount = Math.ceil(total / pagination.limit)
+
+    return { data, pageCount }
+  }
+
+  async findMessengerOrFail(input: {
+    workspaceId: string
+    id: string
+  }): Promise<FBCommentAutomationModel> {
+    const record = await db.query.fbCommentAutomationModel.findFirst({
+      where: {
+        id: input.id,
+        workspaceId: input.workspaceId,
+        type: fbCommentAutomationTypes.enum.messenger,
+      },
+    })
+
+    if (!record) {
+      throw notFoundException("FB Comment Automation not found")
+    }
+
+    return record
+  }
+
+  /**
+   * Keeps a reply's `value` and `values` describing the same thing on the way
+   * in — see `normalizeReplyTexts`.
+   *
+   * Applied HERE rather than at each caller because every write to this table
+   * funnels through the four methods below: the builder actions, the private
+   * and public APIs, and the template installer. Normalizing per call site left
+   * the installer out, which quietly wrote drifted rows — and a row whose
+   * `value` disagrees with its `values` sends the wrong text with no error.
+   */
+  private withNormalizedReplies<
+    T extends Partial<FbCommentAutomationWriteData>,
+  >(data: T): T {
+    if (!data.publicReply) {
+      return data
+    }
+    return { ...data, publicReply: normalizeReplyTexts(data.publicReply) }
+  }
+
+  async createMessenger(input: {
+    workspaceId: string
+    data: FbCommentAutomationWriteData
+  }): Promise<FBCommentAutomationModel> {
+    const [created] = await db
+      .insert(fbCommentAutomationModel)
+      .values({
+        id: createId(),
+        workspaceId: input.workspaceId,
+        type: fbCommentAutomationTypes.enum.messenger,
+        ...this.withNormalizedReplies(input.data),
+      })
+      .returning()
+    return created
+  }
+
+  async updateMessenger(
+    ctx: { workspaceId: string; id: string },
+    data: Partial<FbCommentAutomationWriteData>,
+  ): Promise<FBCommentAutomationModel> {
+    await this.findMessengerOrFail(ctx)
+
+    const [updated] = await db
+      .update(fbCommentAutomationModel)
+      .set(this.withNormalizedReplies(data))
+      .where(
+        and(
+          eq(fbCommentAutomationModel.id, ctx.id),
+          eq(fbCommentAutomationModel.workspaceId, ctx.workspaceId),
+          eq(
+            fbCommentAutomationModel.type,
+            fbCommentAutomationTypes.enum.messenger,
+          ),
+        ),
+      )
+      .returning()
+    return updated
+  }
+
+  async deleteMessenger(input: {
+    workspaceId: string
+    id: string
+  }): Promise<void> {
+    await this.findMessengerOrFail(input)
+    await this.deleteMany({
+      workspaceId: input.workspaceId,
+      ids: [input.id],
+      types: [fbCommentAutomationTypes.enum.messenger],
+    })
+  }
+
+  async listIgComments(
+    input: ListFbCommentsInput,
+  ): Promise<ListFbCommentsResult> {
+    // Same root-folder handling as `list` (mirrors ig-stories' listIgStories).
+    const where = {
+      workspaceId: input.workspaceId,
+      type: { in: [...igCommentAutomationTypes.options] },
+      folderId: resolveFolderIdFilter(input.folderId, input.includeAllFolders),
+      name: input.name ? { ilike: likeContains(input.name) } : undefined,
+      isActive: resolveIsActiveFilter(input.isActive),
+    }
+
+    const pagination = getPaginationWithDefaults(input)
+    const orderBy = parseOrderByAsObject(fbCommentAutomationModel, input)
+
+    const [data, total] = await Promise.all([
+      db.query.fbCommentAutomationModel.findMany({
+        where,
+        orderBy,
+        ...pagination,
+      }),
+      db.$count(
+        fbCommentAutomationModel,
+        relationsFilterToSQL(fbCommentAutomationModel, where),
+      ),
+    ])
+
+    const pageCount = Math.ceil(total / pagination.limit)
+
+    return { data, pageCount }
+  }
+
+  async findInstagramOrFail(input: {
+    workspaceId: string
+    id: string
+  }): Promise<FBCommentAutomationModel> {
+    const record = await db.query.fbCommentAutomationModel.findFirst({
+      where: {
+        id: input.id,
+        workspaceId: input.workspaceId,
+        type: { in: [...igCommentAutomationTypes.options] },
+      },
+    })
+
+    if (!record) {
+      throw notFoundException("Instagram Comment Automation not found")
+    }
+
+    return record
+  }
+
+  async createInstagram(input: {
+    workspaceId: string
+    type: IgCommentAutomationType
+    data: FbCommentAutomationWriteData
+  }): Promise<FBCommentAutomationModel> {
+    const [created] = await db
+      .insert(fbCommentAutomationModel)
+      .values({
+        id: createId(),
+        workspaceId: input.workspaceId,
+        type: input.type,
+        ...this.withNormalizedReplies(input.data),
+      })
+      .returning()
+    return created
+  }
+
+  async updateInstagram(
+    ctx: { workspaceId: string; id: string },
+    data: Partial<FbCommentAutomationWriteData>,
+  ): Promise<FBCommentAutomationModel> {
+    await this.findInstagramOrFail(ctx)
+
+    const [updated] = await db
+      .update(fbCommentAutomationModel)
+      .set(this.withNormalizedReplies(data))
+      .where(
+        and(
+          eq(fbCommentAutomationModel.id, ctx.id),
+          eq(fbCommentAutomationModel.workspaceId, ctx.workspaceId),
+          inArray(
+            fbCommentAutomationModel.type,
+            igCommentAutomationTypes.options,
+          ),
+        ),
+      )
+      .returning()
+    return updated
+  }
+
+  async deleteInstagram(input: {
+    workspaceId: string
+    id: string
+  }): Promise<void> {
+    await this.findInstagramOrFail(input)
+    await this.deleteMany({
+      workspaceId: input.workspaceId,
+      ids: [input.id],
+      types: [...igCommentAutomationTypes.options],
+    })
   }
 }
 

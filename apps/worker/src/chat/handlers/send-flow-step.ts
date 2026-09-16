@@ -39,6 +39,7 @@ import {
   type SendCardStepSchema,
   stepTypes,
 } from "@chatbotx.io/flow-config"
+import { logDiagnostic } from "@chatbotx.io/logger"
 import { RealtimeEventType } from "@chatbotx.io/partysocket-config"
 import {
   IntegrationException,
@@ -48,12 +49,17 @@ import {
   type SendFlowStepData,
 } from "@chatbotx.io/sdk"
 import { createId } from "@chatbotx.io/utils"
+import { resolveStackFrames } from "@chatbotx.io/utils/error-log"
 import { resolveContactVariablesDeep } from "@chatbotx.io/variables"
 import type {
   ChatJobSendChatMessage,
   ChatJobSendFlowStep,
 } from "@chatbotx.io/worker-config"
 import { normalizeError } from "universal-error-normalizer"
+import {
+  settleCommentAutomationDelivered,
+  settleCommentAutomationFailure,
+} from "../../lib/comment-automation-anchor"
 import { logger } from "../../lib/logger"
 import {
   recordMessageSendError,
@@ -132,6 +138,11 @@ export const convertButtonsToTemplate = (props: {
   const { flowId, flowVersionId, buttons, metadata, contactInboxId } = props
   const broadcastId = extractMetadata("broadcastId", metadata)
   const sequenceStepId = extractMetadata("sequenceStepId", metadata)
+  // Read the same way as the two above, and — critically — the same way each
+  // integration's own encoder reads it. The channel re-encodes the payload the
+  // contact actually taps, so any attribution that lives only here is invisible
+  // to the click. See `send-button.ts` in messenger/instagram{,-facebook}.
+  const commentAutomationId = extractMetadata("commentAutomationId", metadata)
 
   return buttons.map((button) => {
     const buttonPayload = encodeButtonPayload({
@@ -141,6 +152,7 @@ export const convertButtonsToTemplate = (props: {
       broadcastId,
       sequenceStepId,
       contactInboxId,
+      commentAutomationId,
     })
 
     if (button.buttonType === buttonTypes.enum.openWebsite) {
@@ -342,6 +354,25 @@ export async function sendFlowStep({
     return
   }
 
+  // What the job actually carried. `metadata` is the carrier the button
+  // encoders read; `commentAnchor` only decides delivery. Note the resolved
+  // inbox may differ from the job's `contactInboxId` (see findTargetContactInbox)
+  // — and it is the RESOLVED one that gets encoded into button payloads.
+  logDiagnostic(
+    logger,
+    () => ({
+      conversationId,
+      jobContactInboxId: contactInboxId ?? null,
+      resolvedContactInboxId: targetContactInbox.id,
+      channel: targetContactInbox.channel,
+      flowId,
+      stepType: step.stepType,
+      metadata: metadata ?? null,
+      commentAnchor: commentAnchor ?? null,
+    }),
+    "sendFlowStep: job received",
+  )
+
   if (step.stepType === stepTypes.enum.sendWaTemplateMessage) {
     if (targetContactInbox.channel !== channelTypes.enum.whatsapp) {
       return
@@ -418,6 +449,7 @@ export async function sendFlowStep({
       channel: targetContactInbox.channel,
       contactInboxId: targetContactInbox.id,
       inboxId: targetContactInbox.inboxId,
+      sourceId: targetContactInbox.sourceId,
     },
     action: {
       flowId,
@@ -589,6 +621,23 @@ export async function sendFlowStep({
       }
     }
 
+    // The comment-automation anchor, stamped in exactly the shape
+    // `readCommentAutomationAnchor` expects (`lib/comment-automation-anchor.ts`)
+    // so a `flow` reply reports delivery and failures through the same path a
+    // `text` reply already does. `replyToCommentId` is part of that shape, so
+    // the private branch has to set it too — the public branch already did,
+    // above, for its own routing reasons.
+    if (commentAnchor?.automationId) {
+      contentAttributes = {
+        ...contentAttributes,
+        replyToCommentId: commentAnchor.commentId,
+        commentAutomation: {
+          automationId: commentAnchor.automationId,
+          replyChannel: commentAnchor.replyChannel,
+        },
+      }
+    }
+
     const messageInput = {
       workspaceId: conversation.workspaceId,
       conversationId: conversation.id,
@@ -747,6 +796,14 @@ export async function sendFlowStep({
       occurredAt: new Date(),
     })
 
+    // A `flow` comment reply reports delivery the same way a `text` one does.
+    // Only the first message of the run can settle it — `markDelivered` is
+    // gated on `deliveredAt IS NULL`, so the rest of the flow's steps are
+    // no-ops rather than inflating the count.
+    await settleCommentAutomationDelivered({
+      contentAttributes: message.contentAttributes,
+    })
+
     // Send contact tracking event
     emit("analytics:dashboard", {
       eventType: "message:bot_sent",
@@ -803,6 +860,9 @@ export async function sendFlowStep({
         flowId,
       },
       errorData: parsedError,
+      // Captured here while the throw is still in hand: `errorData` is a
+      // stackless `ParsedError`, so `ErrorLog.stackTrace` has no other source.
+      errorStack: resolveStackFrames(error),
       occurredAt: new Date(),
       // Always terminal: this catch swallows the error rather than rethrowing,
       // so the step's BullMQ job completes and nothing re-attempts the send.
@@ -816,6 +876,14 @@ export async function sendFlowStep({
       message?.createdAt,
       parsedError.message,
     )
+
+    // Always terminal here, for the same reason the `message:failed` emit above
+    // says so: this catch swallows the error, so nothing will re-attempt the
+    // send and flipping the automation's event to `failed` cannot be premature.
+    await settleCommentAutomationFailure({
+      contentAttributes: message?.contentAttributes,
+      errorDetail: parsedError.message,
+    })
 
     if (trackingContext) {
       await emit("analytics:dashboard", {

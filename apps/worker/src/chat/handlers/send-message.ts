@@ -22,6 +22,7 @@ import {
   parseSdkError,
   type SendFlowStepData,
 } from "@chatbotx.io/sdk"
+import { resolveStackFrames } from "@chatbotx.io/utils/error-log"
 import type {
   ChatJobChangeChannelMessageState,
   ChatJobDeleteChannelMessage,
@@ -31,7 +32,10 @@ import type {
   ChatJobSendTyping,
 } from "@chatbotx.io/worker-config"
 import { ChatJobAction, chatQueue } from "@chatbotx.io/worker-config"
-import { settleCommentAutomationFailure } from "../../lib/comment-automation-anchor"
+import {
+  settleCommentAutomationDelivered,
+  settleCommentAutomationFailure,
+} from "../../lib/comment-automation-anchor"
 import { logger } from "../../lib/logger"
 import {
   allIntegrations,
@@ -202,6 +206,14 @@ export async function sendMessageToChannel(
       at: message.createdAt ?? new Date(),
     })
 
+    // The other half of the cross-queue anchor: the integration worker recorded
+    // the attempt optimistically and only this handler knows the Graph API
+    // accepted it. Meta sends no delivery receipt for a public comment reply,
+    // so this is the automation's only delivery signal.
+    await settleCommentAutomationDelivered({
+      contentAttributes: message?.contentAttributes,
+    })
+
     if (!isComment) {
       try {
         await contactService.unblockIfBlocked({
@@ -254,11 +266,15 @@ export async function sendMessageToChannel(
         conversationId: conversation.id,
         channel: contactInbox.channel,
         contactInboxId: contactInbox.id,
+        sourceId: contactInbox.sourceId,
       },
       action: {
         messageId: message?.id ?? "",
       },
       errorData,
+      // Captured here while the throw is still in hand: `errorData` is a
+      // stackless `ParsedError`, so `ErrorLog.stackTrace` has no other source.
+      errorStack: resolveStackFrames(error),
       occurredAt: new Date(),
       metadata,
       willRetry,

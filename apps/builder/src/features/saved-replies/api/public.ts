@@ -9,6 +9,7 @@ import {
   possibleErrorsOnMutatingResource,
 } from "@/lib/orpc/orpc-error-helper"
 import { paginateInMemory, publicListRequest } from "@/lib/public-api/list"
+import { assertWorkspaceNotBlocked } from "@/lib/workspace-quota"
 import { workspaceTokenAuthAPIForScope } from "@/orpc"
 import { listSavedReplies } from "../queries"
 import {
@@ -30,6 +31,8 @@ export const savedRepliesPublicRouter = {
       method: "GET",
       path: "/v1/saved-replies",
       summary: "List saved replies",
+      description:
+        "Use this to find saved-reply shortcuts before inspecting one with `savedReplies.get` or adding one with `savedReplies.create`. Returns the shortcuts available in this workspace.",
       tags: ["Saved Replies"],
     })
     .input(publicListRequest)
@@ -46,10 +49,18 @@ export const savedRepliesPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/saved-replies/{id}",
-      summary: "Get a saved reply by id",
+      summary: "Get saved reply",
+      description:
+        "Returns one saved reply. Use `savedReplies.list` to find its id first.",
       tags: ["Saved Replies"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Saved reply id. Get it from `savedReplies.list`.",
+        ),
+      }),
+    )
     .output(savedReplyResource)
     .errors(possibleErrorsOnFindingResource)
     .handler(
@@ -64,33 +75,46 @@ export const savedRepliesPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/saved-replies",
-      summary: "Create a saved reply",
+      summary: "Create saved reply",
+      description:
+        "Adds a shortcut-triggered text snippet agents can insert into a reply. Use `savedReplies.list` first to avoid duplicating a shortcut.",
       successStatus: 201,
       tags: ["Saved Replies"],
     })
     .input(createSavedReplyRequest)
     .output(savedReplyResource)
     .errors(possibleErrorsOnCreatingResource)
-    .handler(
-      async ({ context, input }) =>
-        await savedReplyService.create({
-          workspaceId: context.workspace.id,
-          shortcut: input.shortcut,
-          text: input.text,
-        }),
-    ),
+    .handler(async ({ context, input }) => {
+      await assertWorkspaceNotBlocked(context.workspace.ownerId)
+      return await savedReplyService.create({
+        workspaceId: context.workspace.id,
+        shortcut: input.shortcut,
+        text: input.text,
+      })
+    }),
 
   update: workspaceTokenAuthAPI
     .route({
       method: "PUT",
       path: "/v1/saved-replies/{id}",
-      summary: "Update a saved reply",
+      summary: "Update saved reply",
+      description:
+        "Changes a saved reply's shortcut and/or text. Call `savedReplies.get` to inspect current values first.",
       tags: ["Saved Replies"],
     })
-    .input(editSavedReplyRequest.and(z.object({ id: zodBigintAsString() })))
+    .input(
+      editSavedReplyRequest.and(
+        z.object({
+          id: zodBigintAsString().describe(
+            "Saved reply id. Get it from `savedReplies.list`.",
+          ),
+        }),
+      ),
+    )
     .output(savedReplyResource)
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
+      await assertWorkspaceNotBlocked(context.workspace.ownerId)
       const { id, ...data } = input
       return await savedReplyService.update(
         { workspaceId: context.workspace.id, id },
@@ -102,11 +126,19 @@ export const savedRepliesPublicRouter = {
     .route({
       method: "DELETE",
       path: "/v1/saved-replies/{id}",
-      summary: "Delete a saved reply",
+      summary: "Delete saved reply",
+      description:
+        "Permanently deletes a saved reply. Use `savedReplies.list` to find its id first.",
       successStatus: 204,
       tags: ["Saved Replies"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Saved reply id. Get it from `savedReplies.list`.",
+        ),
+      }),
+    )
     .errors(possibleErrorsOnDeletingResource)
     .handler(async ({ context, input }) => {
       await savedReplyService.delete({

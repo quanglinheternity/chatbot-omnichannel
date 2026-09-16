@@ -5,7 +5,11 @@
 // has no session, so any of these six query functions calling
 // `assertCurrentUserCanAccessChatbot` (which resolves the session) would 400
 // every public list call — see docs/developer/workspace-api-tokens.md.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { beforeEach, describe, expect, test, vi } from "vitest"
+
+const USE_SERVER_DIRECTIVE_RE = /^\s*["']use server["']/m
 
 const mocks = vi.hoisted(() => ({
   assertCurrentUserCanAccessChatbot: vi.fn(() => {
@@ -31,6 +35,10 @@ const mocks = vi.hoisted(() => ({
     id: "seq-1",
     sequenceSteps: [],
   }),
+  listWorkspaceMembersPaginated: vi
+    .fn()
+    .mockResolvedValue({ data: [], pageCount: 0 }),
+  listErrorLogsService: vi.fn().mockResolvedValue({ data: [], pageCount: 0 }),
 }))
 
 vi.mock("@/lib/auth/utils", () => ({
@@ -60,7 +68,10 @@ vi.mock("@chatbotx.io/database/utils", () => ({
     offset: ((input.page ?? 1) - 1) * (input.perPage ?? 10),
   }),
   likeContains: (value: string) => value,
-  parseOrderByAsObject: () => undefined,
+  // The real helper always returns an object (`{}` when nothing is sortable),
+  // never `undefined` — `listErrorLogs` reads its keys to decide whether to
+  // fall back to a deterministic order.
+  parseOrderByAsObject: () => ({}),
 }))
 
 vi.mock("@chatbotx.io/database/partials", () => ({
@@ -69,6 +80,7 @@ vi.mock("@chatbotx.io/database/partials", () => ({
 }))
 
 vi.mock("@chatbotx.io/utils/error-log", () => ({
+  errorLogProviders: { safeParse: () => ({ success: false }) },
   errorLogProvidersMatchingLabel: () => [],
 }))
 
@@ -92,6 +104,9 @@ vi.mock("@chatbotx.io/business", () => ({
       return { data, pageCount: Math.ceil(total / pagination.limit) }
     },
   },
+  workspaceMemberService: {
+    listPaginated: mocks.listWorkspaceMembersPaginated,
+  },
 }))
 
 vi.mock("@chatbotx.io/business/sequence", () => ({
@@ -109,6 +124,10 @@ vi.mock("@chatbotx.io/business/sequence", () => ({
       return { data, pageCount: Math.ceil(total / pagination.limit) }
     },
   },
+}))
+
+vi.mock("@chatbotx.io/business/error-log", () => ({
+  listErrorLogs: mocks.listErrorLogsService,
 }))
 
 vi.mock("@chatbotx.io/business/ads-conversion/channel-fields", () => ({
@@ -163,6 +182,11 @@ beforeEach(() => {
     id: "seq-1",
     sequenceSteps: [],
   })
+  mocks.listWorkspaceMembersPaginated.mockResolvedValue({
+    data: [],
+    pageCount: 0,
+  })
+  mocks.listErrorLogsService.mockResolvedValue({ data: [], pageCount: 0 })
 })
 
 describe("public list queries never depend on a session", () => {
@@ -200,7 +224,7 @@ describe("public list queries never depend on a session", () => {
   })
 
   test("listErrorLogs resolves without a session", async () => {
-    const { listErrorLogs } = await import("../src/features/error-logs/queries")
+    const { listErrorLogs } = await import("@chatbotx.io/business/error-log")
     await expect(listErrorLogs({ workspaceId: "ws-1" })).resolves.toBeDefined()
     expect(mocks.assertCurrentUserCanAccessChatbot).not.toHaveBeenCalled()
   })
@@ -262,4 +286,28 @@ describe("public list queries never depend on a session", () => {
     ).resolves.toBeDefined()
     expect(mocks.assertCurrentUserCanAccessChatbot).not.toHaveBeenCalled()
   })
+})
+
+describe("findConversation/findMessage query files are not Next.js server actions", () => {
+  // These files export `findConversation`/`findMessage`, which deliberately
+  // skip `assertCurrentUserCanAccessChatbot` because their only callers
+  // (api/private.ts, api/public.ts) already sit behind oRPC middleware. A
+  // `"use server"` directive would turn every export into a callable Next.js
+  // server action reachable directly from client code with no middleware in
+  // front of it, reopening the auth gap this PR closed. See
+  // AGENTS.md invariant #9 and .agents/rules/data-access.md.
+  const queryFiles = [
+    "../src/features/conversations/queries/list-conversations.query.ts",
+    "../src/features/messages/queries/index.ts",
+  ]
+
+  for (const relativePath of queryFiles) {
+    test(`${relativePath} has no "use server" directive`, () => {
+      const source = readFileSync(
+        join(import.meta.dirname, relativePath),
+        "utf8",
+      )
+      expect(source).not.toMatch(USE_SERVER_DIRECTIVE_RE)
+    })
+  }
 })

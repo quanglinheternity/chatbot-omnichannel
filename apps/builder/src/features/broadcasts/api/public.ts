@@ -1,10 +1,9 @@
-import { broadcastAnalyticsService } from "@chatbotx.io/analytics"
-import { broadcastService, contactInboxService } from "@chatbotx.io/business"
+import { broadcastService } from "@chatbotx.io/business"
 import { notFoundException } from "@chatbotx.io/business/errors"
 import { broadcastStatuses } from "@chatbotx.io/database/partials"
 import { zodBigintAsString } from "@chatbotx.io/utils"
 import z from "zod"
-import { mapStatsContactRow } from "@/features/common/lib/map-stats-contact-row"
+import { mcpSpec } from "@/lib/orpc/mcp-annotations"
 import {
   possibleErrorsOnCreatingResource,
   possibleErrorsOnDeletingResource,
@@ -14,7 +13,6 @@ import {
 } from "@/lib/orpc/orpc-error-helper"
 import { publicListRequest } from "@/lib/public-api/list"
 import { workspaceTokenAuthAPIForScope } from "@/orpc"
-import { listBroadcastAudience, listBroadcasts } from "../queries"
 import {
   createBroadcastRequest,
   resolveScheduleTime,
@@ -41,9 +39,10 @@ const workspaceTokenAuthAPI = workspaceTokenAuthAPIForScope("broadcasts")
 //
 // This flag governs *write-side filter-condition pruning only*
 // (`pruneEmailPhoneFilterConditions`, applied in `create`/`updateDraft`/
-// `resendWithPruning`). Reads are unaffected by it: `get`/`list`, and in
-// particular `getAudience` below, already return full contact PII (email,
-// phone, gender) for any `broadcasts`-scoped token — including a
+// `resendWithPruning`/`cloneBroadcast`). Reads are unaffected by it: `get`/
+// `list`, and in particular `getAudience` below, already return full
+// contact PII (email, phone, gender) for any `broadcasts`-scoped token —
+// including a
 // `read_only` one — because a superAdmin who can mint the token already has
 // that PII in the builder UI. There is no field-level read gate to apply
 // here without diverging from the private route this public route mirrors
@@ -56,15 +55,18 @@ export const broadcastsPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/broadcasts",
-      summary: "Get all broadcasts",
+      summary: "List broadcasts",
+      description:
+        "Use this to find broadcasts by status before inspecting one with `broadcasts.get` or stopping one with `broadcasts.stop`. Returns newest broadcasts across every status.",
       tags: ["Broadcasts"],
+      spec: mcpSpec({ visibility: "default" }),
     })
     .input(publicListRequest)
     .output(publicListBroadcastsResponse)
     .errors(possibleErrorsOnListingResource)
     .handler(
       async ({ context, input }) =>
-        await listBroadcasts({
+        await broadcastService.list({
           workspaceId: context.workspace.id,
           ...input,
           sort: [{ id: "createdAt", desc: true }],
@@ -76,10 +78,21 @@ export const broadcastsPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/broadcasts/{idOrName}",
-      summary: "Get broadcast by id or name",
+      summary: "Get broadcast",
+      description:
+        "Use this to inspect a broadcast by id or name after finding it with `broadcasts.list`. Call `broadcasts.schedule` for a draft or `broadcasts.stop` for a sending broadcast.",
       tags: ["Broadcasts"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(z.object({ idOrName: z.string() }))
+    .input(
+      z.object({
+        idOrName: z
+          .string()
+          .describe(
+            "Broadcast id (numeric string) or exact name. Get it from `broadcasts.list`.",
+          ),
+      }),
+    )
     .output(publicBroadcastResource)
     .errors(possibleErrorsOnFindingResource)
     .handler(
@@ -95,20 +108,36 @@ export const broadcastsPublicRouter = {
       method: "GET",
       path: "/v1/broadcasts/{idOrName}/audience",
       summary: "Get broadcast audience",
+      description:
+        "Returns the paginated audience list a broadcast was or will be sent to. Use `broadcasts.get` to find its id or name first.",
       tags: ["Broadcasts"],
     })
     .input(
       z.object({
-        idOrName: z.string(),
-        page: z.coerce.number().int().min(1).optional(),
-        perPage: z.coerce.number().int().min(1).optional(),
+        idOrName: z
+          .string()
+          .describe(
+            "Broadcast id (numeric string) or exact name. Get it from `broadcasts.list`.",
+          ),
+        page: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("Page number, starting at 1."),
+        perPage: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("Number of items per page."),
       }),
     )
     .output(listBroadcastAudienceResponse)
     .errors(possibleErrorsOnFindingResource)
     .handler(
       async ({ context, input }) =>
-        await listBroadcastAudience({
+        await broadcastService.listAudience({
           idOrName: input.idOrName,
           workspaceId: context.workspace.id,
           page: input.page,
@@ -125,6 +154,8 @@ export const broadcastsPublicRouter = {
       method: "GET",
       path: "/v1/broadcasts/{id}/contacts",
       summary: "List broadcast recipients by event type",
+      description:
+        "Returns contacts that reached one delivery event (e.g. sent, delivered, read, failed) for a broadcast.",
       tags: ["Broadcasts"],
     })
     .input(publicListBroadcastContactsRequest)
@@ -132,44 +163,16 @@ export const broadcastsPublicRouter = {
     .errors(possibleErrorsOnFindingResource)
     .handler(async ({ context, input }) => {
       const { id, eventType, page, perPage } = input
-      const [existingId] = await broadcastService.listExistingIds({
+      const { data, pageCount } = await broadcastService.listContactsPage({
         workspaceId: context.workspace.id,
-        ids: [id],
+        broadcastId: id,
+        eventType,
+        page,
+        perPage,
       })
-      if (!existingId) {
-        throw notFoundException("Broadcast not found")
-      }
 
-      const { contactInboxIds, contactEventMap, total } =
-        await broadcastAnalyticsService.getContacts({
-          workspaceId: context.workspace.id,
-          broadcastId: id,
-          eventType,
-          page,
-          perPage,
-        })
-      const pageCount = Math.ceil(total / perPage)
-
-      if (contactInboxIds.length === 0) {
-        return { data: [], pageCount }
-      }
-
-      const contactInboxes = await contactInboxService.findManyByIds({
-        workspaceId: context.workspace.id,
-        ids: contactInboxIds,
-      })
-      const contactMap = new Map(contactInboxes.map((c) => [c.id, c]))
-
-      const data = contactInboxIds
-        .map((contactInboxId) =>
-          mapStatsContactRow(
-            contactInboxId,
-            contactEventMap.get(contactInboxId),
-            contactMap.get(contactInboxId),
-          ),
-        )
-        .filter((row) => row !== null)
-
+      // `conversationId` is a superset the public response schema doesn't
+      // declare — zod strips it silently, so returning it here is harmless.
       return { data, pageCount }
     }),
 
@@ -177,7 +180,9 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts",
-      summary: "Create a broadcast",
+      summary: "Create broadcast",
+      description:
+        "Starts a broadcast as a draft or scheduled send for the supplied audience. Use `broadcasts.list` to avoid duplicates, then use `broadcasts.schedule` to control its send time.",
       successStatus: 201,
       tags: ["Broadcasts"],
     })
@@ -197,10 +202,20 @@ export const broadcastsPublicRouter = {
     .route({
       method: "PATCH",
       path: "/v1/broadcasts/{id}",
-      summary: "Rename a broadcast",
+      summary: "Rename broadcast",
+      description:
+        "Changes a broadcast's name only. Use `broadcasts.updateDraft` to change a draft's full payload.",
       tags: ["Broadcasts"],
     })
-    .input(updateBroadcastSchema.and(z.object({ id: zodBigintAsString() })))
+    .input(
+      updateBroadcastSchema.and(
+        z.object({
+          id: zodBigintAsString().describe(
+            "Broadcast id. Get it from `broadcasts.list`.",
+          ),
+        }),
+      ),
+    )
     .output(publicBroadcastResource)
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
@@ -219,12 +234,20 @@ export const broadcastsPublicRouter = {
     .route({
       method: "PUT",
       path: "/v1/broadcasts/{id}/draft",
-      summary: "Replace a draft broadcast's full payload",
+      summary: "Replace draft broadcast payload",
       description:
-        "Only matches a broadcast whose status is draft. Setting saveAsDraft to false schedules it.",
+        "Replaces a draft's complete payload and can schedule it when `saveAsDraft` is false. Call `broadcasts.get` to inspect the draft first, or use `broadcasts.schedule` to keep its payload.",
       tags: ["Broadcasts"],
     })
-    .input(createBroadcastRequest.and(z.object({ id: zodBigintAsString() })))
+    .input(
+      createBroadcastRequest.and(
+        z.object({
+          id: zodBigintAsString().describe(
+            "Broadcast id. Get it from `broadcasts.list`.",
+          ),
+        }),
+      ),
+    )
     // `status` is what tells the caller whether `saveAsDraft: false` actually
     // promoted the draft to `scheduled` — the service already computes it, so
     // declaring it here avoids a follow-up GET (zod strips undeclared keys
@@ -245,11 +268,20 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts/{id}/schedule",
-      summary: "Schedule a draft broadcast",
-      description: "Only matches a broadcast whose status is draft.",
+      summary: "Schedule draft broadcast",
+      description:
+        "Moves a draft broadcast to its scheduled state using the provided schedule. Call `broadcasts.get` to inspect it first, or use `broadcasts.updateDraft` to change its payload.",
       tags: ["Broadcasts"],
     })
-    .input(scheduleBroadcastSchema.and(z.object({ id: zodBigintAsString() })))
+    .input(
+      scheduleBroadcastSchema.and(
+        z.object({
+          id: zodBigintAsString().describe(
+            "Broadcast id. Get it from `broadcasts.list`.",
+          ),
+        }),
+      ),
+    )
     .output(z.object({ id: z.string() }))
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
@@ -266,11 +298,18 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts/{id}/move-to-draft",
-      summary: "Move a scheduled broadcast back to draft",
-      description: "Only matches a broadcast whose status is scheduled.",
+      summary: "Move scheduled broadcast back to draft",
+      description:
+        "Reverses a broadcast's `scheduled` state so its payload can be edited again. Only matches a broadcast whose status is `scheduled`; 404 otherwise. Use `broadcasts.updateDraft` afterward, or `broadcasts.schedule` to re-schedule.",
       tags: ["Broadcasts"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
     .output(z.object({ id: z.string() }))
     .errors(possibleErrorsOnMutatingResource)
     .handler(
@@ -285,11 +324,19 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts/{id}/stop",
-      summary: "Stop a broadcast that is currently sending",
-      description: "Only matches a broadcast whose status is sending.",
+      summary: "Stop broadcast",
+      description:
+        "Stops a broadcast only while it is sending and returns its id. Call `broadcasts.get` to confirm its state first, or use `broadcasts.moveToDraft` for scheduled broadcasts.",
       tags: ["Broadcasts"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
     .output(z.object({ id: z.string() }))
     .errors(possibleErrorsOnMutatingResource)
     .handler(
@@ -304,11 +351,18 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts/{id}/resume",
-      summary: "Resume a stopped broadcast",
-      description: "Only matches a broadcast whose status is cancelled.",
+      summary: "Resume stopped broadcast",
+      description:
+        "Resumes sending a stopped broadcast where it left off. Only matches a broadcast whose status is `cancelled`; 404 otherwise. Use `broadcasts.stop` to pause a sending broadcast.",
       tags: ["Broadcasts"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
     .output(z.object({ id: z.string() }))
     .errors(possibleErrorsOnMutatingResource)
     .handler(
@@ -323,13 +377,19 @@ export const broadcastsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/broadcasts/{id}/resend",
-      summary: "Resend a sent or failed broadcast",
+      summary: "Resend sent or failed broadcast",
       description:
         "Clones a sent or failed broadcast into a new immediately-scheduled one. Only matches a broadcast whose status is sent or failed.",
       successStatus: 201,
       tags: ["Broadcasts"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
     .output(publicBroadcastResource)
     .errors(possibleErrorsOnMutatingResource)
     .handler(
@@ -341,17 +401,51 @@ export const broadcastsPublicRouter = {
         }),
     ),
 
+  clone: workspaceTokenAuthAPI
+    .route({
+      method: "POST",
+      path: "/v1/broadcasts/{id}/clone",
+      summary: "Clone broadcast",
+      description:
+        "Copies the broadcast into a new draft with a deduplicated name, including its targets and audience filter.",
+      successStatus: 201,
+      tags: ["Broadcasts"],
+    })
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
+    .output(publicBroadcastResource)
+    .errors(possibleErrorsOnMutatingResource)
+    .handler(
+      async ({ context, input }) =>
+        await broadcastService.cloneBroadcast({
+          workspaceId: context.workspace.id,
+          broadcastId: input.id,
+          canViewEmailAndPhone: TOKEN_CALLER_CAN_VIEW_EMAIL_AND_PHONE,
+        }),
+    ),
+
   delete: workspaceTokenAuthAPI
     .route({
       method: "DELETE",
       path: "/v1/broadcasts/{id}",
-      summary: "Delete a broadcast",
+      summary: "Delete broadcast",
       description:
         "Soft-deletes the broadcast. A broadcast that is currently sending cannot be deleted.",
       successStatus: 204,
       tags: ["Broadcasts"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(
+      z.object({
+        id: zodBigintAsString().describe(
+          "Broadcast id. Get it from `broadcasts.list`.",
+        ),
+      }),
+    )
     .errors(possibleErrorsOnDeletingResource)
     .handler(async ({ context, input }) => {
       // `softDeleteBroadcasts` is a bulk method: it reports skipped ids via

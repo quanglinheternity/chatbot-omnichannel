@@ -253,7 +253,7 @@
     "dateFilterPreset": "Predefinição do filtro de data",
     "noResults": "Nenhum resultado.",
     "noData": "Sem dados",
-    "retentionNotice": "Apenas os dados dos últimos {days} dias são mantidos.",
+    "errorLogRetentionNotice": "Apenas os registos de erros dos últimos {days} dias são mantidos.",
     "comingSoon": "Brevemente",
     "unknown": "Desconhecido",
     "pagination": {
@@ -510,6 +510,35 @@
       "description": "\"{name}\" will continue sending to recipients who have not received it yet."
     }
   },
+  "commentAutomation": {
+    "stats": {
+      "sent": "Enviado",
+      "delivered": "Entregue",
+      "seen": "Visto",
+      "clicked": "Clicado",
+      "failed": "Falhou",
+      "missed": "Perdidos",
+      "noContacts": "Nenhum contacto encontrado",
+      "noComment": "(sem texto)",
+      "pageInfo": "Página {page} de {pageCount}",
+      "selectedAll": "Todos selecionados",
+      "selectedCount": "{count} selecionados",
+      "tagAllDialogDescription": "As etiquetas serão adicionadas a todos os contactos selecionados.",
+      "tagDialogDescription": "As etiquetas serão adicionadas a {count} contacto(s).",
+      "tagQueued": "A adicionar etiquetas a {count} contactos em segundo plano.",
+      "loadingMore": "A carregar mais...",
+      "receivers": "Destinatários"
+    },
+    "missReasons": {
+      "outsideSchedule": "Fora do horário",
+      "postNotMatched": "Publicação não segmentada",
+      "commentIsReply": "Resposta a comentário",
+      "keywordsNotMatched": "Palavras-chave não corresponderam",
+      "contactNotNew": "O contacto não é novo",
+      "alreadyRepliedOnPost": "Já respondido nesta publicação",
+      "engagedOnOtherPost": "Já interagiu noutra publicação"
+    }
+  },
   "condition": {
     "yes": "Sim",
     "no": "Não",
@@ -698,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "ID de configuração das Mensagens de marketing",
+      "description": "ID de configuração do Facebook Login for Business utilizado para solicitar a permissão marketing_messages_messenger."
+    },
     "omnichannel": {
       "label": "Omnicanal"
     },
@@ -833,9 +866,6 @@
     },
     "aiFunction": {
       "label": "Função de IA"
-    },
-    "aiTrigger": {
-      "label": "Acionador de IA"
     },
     "alphanumericLength": {
       "label": "Comprimento alfanumérico"
@@ -2438,6 +2468,41 @@
   "general": {
     "title": "Geral"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Isto remove a campanha apenas do ChatbotX. A campanha de mensagens da Meta continua ativa — coloque em pausa ou elimine no Gestor de Anúncios.",
+    "title": "Facebook Marketing Messages",
+    "description": "Aumente o envolvimento e as vendas com mensagens promocionais personalizadas no Messenger.",
+    "create": "Criar novo",
+    "grantTitle": "Conceder acesso ao Facebook",
+    "grantDescription": "Conceda acesso para utilizar a funcionalidade Mensagens de marketing",
+    "grantAction": "Conceder acesso",
+    "reconnect": "Voltar a ligar",
+    "expiredWarning": "O seu acesso ao Facebook expirou ou foi revogado. Volte a ligar para criar ou editar campanhas. As campanhas existentes são apresentadas abaixo e ficam apenas para leitura até voltar a ligar.",
+    "fields": {
+      "image": "Imagem",
+      "video": "Vídeo",
+      "page": "Página do Facebook",
+      "adAccount": "Conta de anúncios",
+      "budgetType": "Tipo de orçamento",
+      "budget": "Orçamento",
+      "daily": "Orçamento diário",
+      "lifetime": "Orçamento total",
+      "templateType": "Tipo de mensagem",
+      "text": "Texto",
+      "button": "Botão",
+      "media": "Multimédia",
+      "generic": "Genérico",
+      "greeting": "Saudação",
+      "quickReplies": "Respostas rápidas",
+      "elements": "Cartões"
+    },
+    "errors": {
+      "notConfigured": "O Facebook Marketing Messages não está configurado. Peça ao seu administrador para definir o ID de configuração das Mensagens de marketing.",
+      "notGranted": "Conceda acesso para utilizar a funcionalidade Mensagens de marketing.",
+      "tosNotAccepted": "Para utilizar esta funcionalidade, aceite os termos de objeto personalizado em {url}",
+      "notFound": "Mensagem de marketing não encontrada."
+    }
+  },
   "facebookAds": {
     "title": "Anúncios do Facebook",
     "setting": {
@@ -3417,10 +3482,6 @@
       "description": "Descrição dos agentes de IA",
       "title": "Agentes de IA"
     },
-    "aiTriggers": {
-      "description": "Descrição dos acionadores de IA",
-      "title": "Acionadores de IA"
-    },
     "automatedResponses": {
       "title": "Palavras-chave"
     },
@@ -4292,9 +4353,9 @@
     "trackCommentsOn": "Monitorizar comentários em",
     "trackCommentsOnDescription": "Aplique esta automatização a todas as publicações da sua Página ou limite-a às publicações específicas que selecionar.",
     "privateReply": "Resposta privada (caixa de entrada)",
-    "privateReplyDescription": "Envie uma mensagem privada para a caixa de entrada do autor do comentário. Escolha um agente de IA, um modelo de texto fixo (suporta spintax), um fluxo do chatbot ou desative a resposta.",
+    "privateReplyDescription": "Envie uma mensagem privada para a caixa de entrada do autor do comentário. Escolha um agente de IA, um modelo de texto fixo, um fluxo do chatbot ou desative a resposta.",
     "publicReply": "Resposta pública ao comentário",
-    "publicReplyDescription": "Publique uma resposta pública diretamente sob o comentário. Suporta até 10 modelos de texto (com spintax), um agente de IA, um fluxo do chatbot ou nenhuma resposta.",
+    "publicReplyDescription": "Publique uma resposta pública diretamente sob o comentário. Suporta até 10 modelos de texto, um agente de IA, um fluxo do chatbot ou nenhuma resposta. Cada mensagem é publicada como uma resposta separada.",
     "replyMessage": "Mensagem de resposta",
     "replyMessagePlaceholder": "Introduza a mensagem de resposta...",
     "includeKeywordsType": "Responder a",
@@ -4362,8 +4423,8 @@
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Continuar a responder a utilizadores que já comentaram noutras publicações suas.",
       "ignoreCommentReplies": "Não responder a respostas a comentários",
       "ignoreCommentRepliesDescription": "Ignorar a automatização em comentários que sejam respostas a outros comentários e não comentários de nível superior.",
-      "trackUserTags": "Monitorizar se um utilizador identifica outros utilizadores",
-      "trackUserTagsDescription": "Acionar a automatização quando um utilizador identifica ou menciona outro utilizador no respetivo comentário."
+      "trackUserTags": "Registar se um utilizador marca outros utilizadores",
+      "trackUserTagsDescription": "Use '{{total_tagged}}' para saber quantos utilizadores foram marcados. Use '{{total_new_tagged}}' para saber quantas das pessoas marcadas não estão na lista de contactos."
     },
     "hideComments": {
       "all": "Ocultar todos os comentários",
@@ -4395,9 +4456,9 @@
     "trackCommentsOn": "Monitorizar comentários em",
     "trackCommentsOnDescription": "Aplique esta automatização a todas as publicações da sua conta ligada ou limite-a às publicações específicas que selecionar.",
     "privateReply": "Resposta privada (caixa de entrada)",
-    "privateReplyDescription": "Envie uma mensagem privada para a caixa de entrada do autor do comentário. Escolha um agente de IA, um modelo de texto fixo (suporta spintax), um fluxo do chatbot ou desative a resposta.",
+    "privateReplyDescription": "Envie uma mensagem privada para a caixa de entrada do autor do comentário. Escolha um agente de IA, um modelo de texto fixo, um fluxo do chatbot ou desative a resposta.",
     "publicReply": "Resposta pública ao comentário",
-    "publicReplyDescription": "Publique uma resposta pública diretamente sob o comentário. Suporta até 10 modelos de texto (com spintax), um agente de IA, um fluxo do chatbot ou nenhuma resposta.",
+    "publicReplyDescription": "Publique uma resposta pública diretamente sob o comentário. Suporta até 10 modelos de texto, um agente de IA, um fluxo do chatbot ou nenhuma resposta. Cada mensagem é publicada como uma resposta separada.",
     "replyMessage": "Mensagem de resposta",
     "replyMessagePlaceholder": "Introduza a mensagem de resposta...",
     "includeKeywordsType": "Responder a",
@@ -4463,7 +4524,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "Responder a utilizadores que comentaram noutras publicações",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Continuar a responder a utilizadores que já comentaram noutras publicações suas.",
       "ignoreCommentReplies": "Não responder a respostas a comentários",
-      "ignoreCommentRepliesDescription": "Ignorar a automatização em comentários que sejam respostas a outros comentários e não comentários de nível superior."
+      "ignoreCommentRepliesDescription": "Ignorar a automatização em comentários que sejam respostas a outros comentários e não comentários de nível superior.",
+      "trackUserTags": "Registar se um utilizador marca outros utilizadores",
+      "trackUserTagsDescription": "Use '{{total_tagged}}' para saber quantos utilizadores foram marcados. Use '{{total_new_tagged}}' para saber quantas das pessoas marcadas não estão na lista de contactos."
     },
     "hideComments": {
       "all": "Ocultar todos os comentários",

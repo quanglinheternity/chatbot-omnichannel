@@ -208,3 +208,79 @@ export const possibleErrorsOnMutatingAppointmentCalendar = {
   nameAlreadyExists,
   duplicateReminder,
 } satisfies ErrorMap
+
+/**
+ * `ContactScanService.schedule` (packages/business/src/contact-scan/service.ts) throws six
+ * distinct `ChatbotXException` codes, two of them 409 — same declare-or-vanish rule as
+ * `possibleErrorsOnBookingAppointment` above.
+ */
+export const possibleErrorsOnSchedulingContactScan = {
+  businessError,
+  contactScanFromTimeInvalid: {
+    message: "Scan-from time must be in the past",
+    status: 400,
+  },
+  contactScanInboxNotFound: { message: "Inbox not found", status: 404 },
+  contactScanChannelUnsupported: {
+    message: "This channel does not support Automatic Customer Scan",
+    status: 400,
+  },
+  contactScanIntegrationDisconnected: {
+    message: "This inbox is not connected",
+    status: 400,
+  },
+  contactScanCooldown: {
+    message:
+      "This inbox was scanned recently. Please wait before scanning again.",
+    status: 409,
+  },
+  contactScanAlreadyRunning: {
+    message: "A scan is already running for this inbox.",
+    status: 409,
+  },
+} satisfies ErrorMap
+
+/**
+ * Minigame create/update enforce `Minigame_workspaceId_name_key`, surfaced by
+ * `minigameService.rethrowNameConflict` as `nameAlreadyExists`/409. Same
+ * declare-or-vanish rule as the appointment-calendar pair above.
+ */
+const minigameNameAlreadyExists = {
+  message: "Minigame name already exists",
+  status: 409,
+}
+
+export const possibleErrorsOnCreatingMinigame = {
+  businessError,
+  nameAlreadyExists: minigameNameAlreadyExists,
+} satisfies ErrorMap
+
+export const possibleErrorsOnMutatingMinigame = {
+  notFound,
+  businessError,
+  nameAlreadyExists: minigameNameAlreadyExists,
+} satisfies ErrorMap
+
+/**
+ * Email topic create/update reject a duplicate name with `nameTaken` at 400
+ * (`packages/business/src/email-topic/service.ts`), and create surfaces a
+ * 404 when `folderId` names a folder that does not exist in the workspace
+ * (`folderService.ensureExists`). Same declare-or-vanish rule as
+ * `possibleErrorsOnBookingAppointment` above.
+ */
+const nameTaken = {
+  message: "Name is already taken",
+  status: 400,
+}
+
+export const possibleErrorsOnCreatingEmailTopic = {
+  notFound,
+  businessError,
+  nameTaken,
+} satisfies ErrorMap
+
+export const possibleErrorsOnMutatingEmailTopic = {
+  notFound,
+  businessError,
+  nameTaken,
+} satisfies ErrorMap

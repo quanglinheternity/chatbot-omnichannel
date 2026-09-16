@@ -253,7 +253,7 @@
     "dateFilterPreset": "日付フィルターのプリセット",
     "noResults": "結果がありません。",
     "noData": "データがありません",
-    "retentionNotice": "データは直近{days}日間のみ保持されます。",
+    "errorLogRetentionNotice": "エラーログは直近{days}日間のみ保持されます。",
     "comingSoon": "近日公開",
     "unknown": "不明",
     "pagination": {
@@ -510,6 +510,35 @@
       "description": "\"{name}\" will continue sending to recipients who have not received it yet."
     }
   },
+  "commentAutomation": {
+    "stats": {
+      "sent": "送信済み",
+      "delivered": "配信済み",
+      "seen": "閲覧済み",
+      "clicked": "クリック済み",
+      "failed": "失敗",
+      "missed": "未対応",
+      "noContacts": "連絡先が見つかりません",
+      "noComment": "(テキストなし)",
+      "pageInfo": "{pageCount}ページ中{page}ページ",
+      "selectedAll": "すべて選択済み",
+      "selectedCount": "{count}件を選択",
+      "tagAllDialogDescription": "選択したすべての連絡先にタグが追加されます。",
+      "tagDialogDescription": "{count}件の連絡先にタグが追加されます。",
+      "tagQueued": "{count}件の連絡先へのタグ付けをバックグラウンドで実行しています。",
+      "loadingMore": "さらに読み込み中...",
+      "receivers": "受信者"
+    },
+    "missReasons": {
+      "outsideSchedule": "スケジュール外",
+      "postNotMatched": "対象外の投稿",
+      "commentIsReply": "コメントへの返信",
+      "keywordsNotMatched": "キーワード不一致",
+      "contactNotNew": "新規の連絡先ではない",
+      "alreadyRepliedOnPost": "この投稿では返信済み",
+      "engagedOnOtherPost": "他の投稿で既に反応済み"
+    }
+  },
   "condition": {
     "yes": "はい",
     "no": "いいえ",
@@ -698,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "マーケティングメッセージ構成ID",
+      "description": "marketing_messages_messenger権限をリクエストするために使用するFacebookログイン（ビジネス用）の構成IDです。"
+    },
     "omnichannel": {
       "label": "オムニチャネル"
     },
@@ -833,9 +866,6 @@
     },
     "aiFunction": {
       "label": "AI関数"
-    },
-    "aiTrigger": {
-      "label": "AIトリガー"
     },
     "alphanumericLength": {
       "label": "英数字の長さ"
@@ -2438,6 +2468,41 @@
   "general": {
     "title": "一般"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "これはChatbotXからキャンペーンを削除するだけです。Metaのメッセージキャンペーンは実行され続けます — 広告マネージャで一時停止または削除してください。",
+    "title": "Facebookマーケティングメッセージ",
+    "description": "Messengerでパーソナライズされたプロモーションメッセージを送り、エンゲージメントと売上を高めます。",
+    "create": "新規作成",
+    "grantTitle": "Facebookへのアクセスを許可",
+    "grantDescription": "マーケティングメッセージ機能を使用するにはアクセスを許可してください",
+    "grantAction": "アクセスを許可",
+    "reconnect": "再接続",
+    "expiredWarning": "Facebookへのアクセスが期限切れまたは取り消されました。キャンペーンを作成・編集するには再接続してください。既存のキャンペーンは以下に表示され、再接続するまで読み取り専用です。",
+    "fields": {
+      "image": "画像",
+      "video": "動画",
+      "page": "Facebookページ",
+      "adAccount": "広告アカウント",
+      "budgetType": "予算タイプ",
+      "budget": "予算",
+      "daily": "1日の予算",
+      "lifetime": "通算予算",
+      "templateType": "メッセージタイプ",
+      "text": "テキスト",
+      "button": "ボタン",
+      "media": "メディア",
+      "generic": "汎用",
+      "greeting": "あいさつ",
+      "quickReplies": "クイック返信",
+      "elements": "カード"
+    },
+    "errors": {
+      "notConfigured": "Facebookマーケティングメッセージが構成されていません。管理者にマーケティングメッセージ構成IDの設定を依頼してください。",
+      "notGranted": "マーケティングメッセージ機能を使用するにはアクセスを許可してください。",
+      "tosNotAccepted": "この機能を使用するには、{url} でカスタムオブジェクトの規約に同意してください",
+      "notFound": "マーケティングメッセージが見つかりません。"
+    }
+  },
   "facebookAds": {
     "title": "Facebook広告",
     "setting": {
@@ -3396,10 +3461,6 @@
       "description": "AIエージェントの説明",
       "title": "AIエージェント"
     },
-    "aiTriggers": {
-      "description": "AIトリガーの説明",
-      "title": "AIトリガー"
-    },
     "automatedResponses": {
       "title": "キーワード"
     },
@@ -4275,9 +4336,9 @@
     "trackCommentsOn": "コメントを追跡する投稿",
     "trackCommentsOnDescription": "ページのすべての投稿にこの自動化を適用するか、選択した特定の投稿に限定します。",
     "privateReply": "非公開返信（受信トレイ）",
-    "privateReplyDescription": "コメントしたユーザーの受信トレイに非公開メッセージを送信します。AIエージェント、固定テキストテンプレート（spintax対応）、チャットボットフロー、または無効を選択できます。",
+    "privateReplyDescription": "コメントしたユーザーの受信トレイに非公開メッセージを送信します。AIエージェント、固定テキストテンプレート、チャットボットフロー、または無効を選択できます。",
     "publicReply": "コメントに公開返信",
-    "publicReplyDescription": "コメントの直下に公開返信を投稿します。最大10件のテキストテンプレート（spintax対応）、AIエージェント、チャットボットフロー、または返信なしを選択できます。",
+    "publicReplyDescription": "コメントの直下に公開返信を投稿します。最大10件のテキストテンプレート、AIエージェント、チャットボットフロー、または返信なしを選択できます。 各メッセージは個別の返信として投稿されます。",
     "replyMessage": "返信メッセージ",
     "replyMessagePlaceholder": "返信メッセージを入力...",
     "includeKeywordsType": "返信対象",
@@ -4345,8 +4406,8 @@
       "replyToUsersWhoCommentedOnOtherPostsDescription": "他の投稿にすでにコメントしたユーザーにも引き続き返信します。",
       "ignoreCommentReplies": "コメントへの返信には応答しない",
       "ignoreCommentRepliesDescription": "トップレベルのコメントではなく、他のコメントへの返信には自動化を適用しません。",
-      "trackUserTags": "ユーザーが他のユーザーをタグ付けしたか追跡",
-      "trackUserTagsDescription": "ユーザーがコメント内で別のユーザーをタグ付けまたはメンションしたときに自動化を開始します。"
+      "trackUserTags": "ユーザーが他のユーザーをタグ付けしたかを記録する",
+      "trackUserTagsDescription": "'{{total_tagged}}' で何人のユーザーがタグ付けされたかを確認できます。'{{total_new_tagged}}' でタグ付けされた人のうち連絡先リストにいない人数を確認できます。"
     },
     "hideComments": {
       "all": "すべてのコメントを非表示",
@@ -4378,9 +4439,9 @@
     "trackCommentsOn": "コメントを追跡する投稿",
     "trackCommentsOnDescription": "接続済みアカウントのすべての投稿にこの自動化を適用するか、選択した特定の投稿に限定します。",
     "privateReply": "非公開返信（受信トレイ）",
-    "privateReplyDescription": "コメントしたユーザーの受信トレイに非公開メッセージを送信します。AIエージェント、固定テキストテンプレート（spintax対応）、チャットボットフロー、または無効を選択できます。",
+    "privateReplyDescription": "コメントしたユーザーの受信トレイに非公開メッセージを送信します。AIエージェント、固定テキストテンプレート、チャットボットフロー、または無効を選択できます。",
     "publicReply": "コメントに公開返信",
-    "publicReplyDescription": "コメントの直下に公開返信を投稿します。最大10件のテキストテンプレート（spintax対応）、AIエージェント、チャットボットフロー、または返信なしを選択できます。",
+    "publicReplyDescription": "コメントの直下に公開返信を投稿します。最大10件のテキストテンプレート、AIエージェント、チャットボットフロー、または返信なしを選択できます。 各メッセージは個別の返信として投稿されます。",
     "replyMessage": "返信メッセージ",
     "replyMessagePlaceholder": "返信メッセージを入力...",
     "includeKeywordsType": "返信対象",
@@ -4446,7 +4507,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "他の投稿にコメントしたユーザーにも返信",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "他の投稿にすでにコメントしたユーザーにも引き続き返信します。",
       "ignoreCommentReplies": "コメントへの返信には応答しない",
-      "ignoreCommentRepliesDescription": "トップレベルのコメントではなく、他のコメントへの返信には自動化を適用しません。"
+      "ignoreCommentRepliesDescription": "トップレベルのコメントではなく、他のコメントへの返信には自動化を適用しません。",
+      "trackUserTags": "ユーザーが他のユーザーをタグ付けしたかを記録する",
+      "trackUserTagsDescription": "'{{total_tagged}}' で何人のユーザーがタグ付けされたかを確認できます。'{{total_new_tagged}}' でタグ付けされた人のうち連絡先リストにいない人数を確認できます。"
     },
     "hideComments": {
       "all": "すべてのコメントを非表示",

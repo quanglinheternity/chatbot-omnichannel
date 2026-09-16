@@ -1,22 +1,27 @@
-import { db, eq, findOrFail } from "@chatbotx.io/database/client"
+import type { DatabaseClient } from "@chatbotx.io/database/client"
+import { and, db, eq, findOrFail } from "@chatbotx.io/database/client"
 import { channelTypes } from "@chatbotx.io/database/partials"
 import { integrationSmtpModel } from "@chatbotx.io/database/schema"
-import type { IntegrationSmtpModel } from "@chatbotx.io/database/types"
+import type {
+  InboxModel,
+  IntegrationSmtpModel,
+} from "@chatbotx.io/database/types"
 import { createId } from "@chatbotx.io/utils"
 import { isSameJsonValue } from "../audit/diff"
 import { BaseService } from "../base.service"
 import { ChatbotXException } from "../errors"
 import { connectChannelIntegration } from "../inbox/connect-channel"
 import { inboxService } from "../inbox/service"
-import { workspaceService } from "../workspace/service"
+import type { IntegrationSmtpResource } from "./schema"
 
 /**
- * Mirrors `@chatbotx.io/integration-smtp`'s `SmtpAuthValue` structurally —
- * `packages/business` must not depend on an `integrations/*` package, so the
- * caller (app layer) resolves `provider`'s default host/port via that
- * package's `smtpHostMap` before calling `create`/`update`.
+ * Mirrors `SmtpAuthValue` from `@chatbotx.io/integration-smtp` without
+ * importing that package into business (it would pull `nodemailer` +
+ * `next-intl` transitively into every business consumer, including the
+ * worker). Host/port resolution against `smtpHostMap` stays in the builder
+ * and is passed in already resolved.
  */
-export type SmtpAuthValue = {
+type SmtpAuthInput = {
   authType: "custom"
   provider: string
   host: string
@@ -25,16 +30,20 @@ export type SmtpAuthValue = {
   password: string
 }
 
-export type CreateSmtpInput = {
+/**
+ * Every field is optional: the builder's update form submits only what the
+ * user touched, and each missing value falls back to the row's current auth.
+ * `host`/`port` must already be resolved against `smtpHostMap` by the caller
+ * (see the note above) — this service only fills them from the stored row.
+ */
+export type UpdateSmtpInput = Partial<{
   provider: string
   host: string
   port: number
   username: string
   password: string
   fromAddress: string
-}
-
-export type UpdateSmtpInput = CreateSmtpInput
+}>
 
 class IntegrationSmtpService extends BaseService {
   find({
@@ -47,122 +56,125 @@ class IntegrationSmtpService extends BaseService {
     })
   }
 
-  listByWorkspaceId(workspaceId: string) {
-    return db.query.integrationSmtpModel.findMany({
-      where: { workspaceId },
-      orderBy: { createdAt: "desc" },
-    })
-  }
-
-  findByIdForWorkspace(props: { id: string; workspaceId: string }) {
+  findByIdForWorkspace(props: {
+    id: string
+    workspaceId: string
+  }): Promise<IntegrationSmtpModel> {
     return findOrFail({
       table: integrationSmtpModel,
-      where: props,
+      where: { id: props.id, workspaceId: props.workspaceId },
       message: "SMTP integration not found",
     })
   }
 
-  /**
-   * Callers must:
-   * 1. verify the SMTP connection (via `verifySmtpConnection` in
-   *    `apps/builder/src/features/integration-smtp/services/smtp.service.ts`)
-   *    — needs `next-intl` to translate the failure message, which a service
-   *    cannot call.
-   * 2. resolve `input.host`/`input.port` to the provider's default (via that
-   *    same file's `smtpHostMap`) when `input.provider !== "other"` — the
-   *    map lives in `@chatbotx.io/integration-smtp`, which `packages/business`
-   *    must not depend on.
-   */
-  async create(
+  async listByWorkspace(
     workspaceId: string,
-    input: CreateSmtpInput,
-  ): Promise<{ id: string }> {
-    const { host, port } = input
-
-    const workspace = await workspaceService.find({
-      where: { id: workspaceId },
+  ): Promise<IntegrationSmtpResource[]> {
+    const data = await db.query.integrationSmtpModel.findMany({
+      where: { workspaceId },
+      orderBy: {
+        createdAt: "desc",
+      },
     })
-    if (!workspace) {
-      throw new ChatbotXException("Workspace not found")
-    }
 
-    const { inbox, wasCreated } = await db.transaction(async (tx) => {
-      const smtpId = createId()
-      const name = input.username
+    return data.map(({ id, name, fromAddress }) => ({
+      id,
+      name,
+      fromAddress,
+    }))
+  }
 
-      return await connectChannelIntegration({
-        tx,
-        ownerId: workspace.ownerId,
-        inboxData: {
-          id: smtpId,
-          workspaceId,
-          channel: channelTypes.enum.smtp,
-          name,
-          sourceId: smtpId,
-        },
-        insertIntegration: async (inboxId) => {
-          await tx.insert(integrationSmtpModel).values({
+  async connect(input: {
+    workspaceId: string
+    ownerId: string
+    name: string
+    fromAddress: string
+    auth: SmtpAuthInput
+  }): Promise<{ inbox: InboxModel; wasCreated: boolean; smtpId: string }> {
+    const { workspaceId, ownerId, name, fromAddress, auth } = input
+
+    const smtpId = createId()
+    const { inbox, wasCreated } = await db.transaction(
+      async (tx) =>
+        await connectChannelIntegration({
+          tx,
+          ownerId,
+          inboxData: {
             id: smtpId,
-            name,
             workspaceId,
-            inboxId,
-            fromAddress: input.fromAddress,
-            auth: {
-              authType: "custom" as const,
-              provider: input.provider,
-              username: input.username,
-              password: input.password,
-              host,
-              port,
-            },
-          })
-        },
-      })
-    })
+            channel: channelTypes.enum.smtp,
+            name,
+            sourceId: smtpId,
+          },
+          insertIntegration: async (inboxId) => {
+            await tx.insert(integrationSmtpModel).values({
+              id: smtpId,
+              name,
+              workspaceId,
+              inboxId,
+              fromAddress,
+              auth,
+            })
+          },
+        }),
+    )
 
     if (wasCreated) {
       await this.audit("connect", `connected a new SMTP channel (#${inbox.id})`)
     }
 
-    return inbox
+    return { inbox, wasCreated, smtpId }
   }
 
-  async update(
-    workspaceId: string,
-    id: string,
-    input: UpdateSmtpInput,
-  ): Promise<IntegrationSmtpModel> {
+  /**
+   * Merges `data` over the row's stored auth, writes it, and records an audit
+   * entry only when the resulting payload actually differs. Both the merge and
+   * the diff live here so any future caller (public API, worker) gets them for
+   * free — see `.agents/rules/data-access.md` on public and private paths
+   * sharing one service method.
+   */
+  async update(input: {
+    workspaceId: string
+    id: string
+    data: UpdateSmtpInput
+    tx?: DatabaseClient
+  }): Promise<IntegrationSmtpModel> {
+    const { workspaceId, id, data, tx = db } = input
+
     const integration = await this.findByIdForWorkspace({ id, workspaceId })
-    const currentAuth = integration.auth as SmtpAuthValue
-    const provider = input.provider ?? currentAuth.provider
-    const host = input.host || currentAuth.host
-    const port = input.port || currentAuth.port
+    const currentAuth = integration.auth as SmtpAuthInput
 
-    const updatedAuth: SmtpAuthValue = {
+    const auth: SmtpAuthInput = {
       authType: "custom",
-      provider,
-      host,
-      port,
-      username: input.username ?? currentAuth.username,
-      password: input.password ?? currentAuth.password,
+      provider: data.provider ?? currentAuth.provider,
+      host: data.host || currentAuth.host,
+      port: data.port || currentAuth.port,
+      username: data.username ?? currentAuth.username,
+      password: data.password ?? currentAuth.password,
     }
+    const name = data.username ?? integration.name
+    const fromAddress = data.fromAddress ?? integration.fromAddress
 
-    const name = input.username ?? integration.name
-    const fromAddress = input.fromAddress ?? integration.fromAddress
-
-    const updated = await db
+    // Scoped by workspace as well as id: `findByIdForWorkspace` above already
+    // proves ownership, but this method accepts a `workspaceId` and must
+    // honour it rather than trusting every future caller to guard first.
+    const [updated] = await tx
       .update(integrationSmtpModel)
-      .set({ auth: updatedAuth, name, fromAddress })
-      .where(eq(integrationSmtpModel.id, integration.id))
+      .set({ auth, name, fromAddress })
+      .where(
+        and(
+          eq(integrationSmtpModel.id, id),
+          eq(integrationSmtpModel.workspaceId, workspaceId),
+        ),
+      )
       .returning()
-      .then((result) => result[0])
 
     if (!updated) {
-      throw new Error("Failed to update SMTP integration")
+      throw new ChatbotXException("SMTP integration not found")
     }
 
     const hasChanged = !isSameJsonValue(
-      { auth: updatedAuth, name, fromAddress },
+      { auth, name, fromAddress },
       {
         auth: currentAuth,
         name: integration.name,
@@ -177,30 +189,41 @@ class IntegrationSmtpService extends BaseService {
     return updated
   }
 
-  async delete(workspaceId: string, id: string): Promise<void> {
-    const [integration, workspace] = await Promise.all([
-      this.findByIdForWorkspace({ id, workspaceId }),
-      workspaceService.findById({ id: workspaceId }),
-    ])
+  async disconnect(input: {
+    workspaceId: string
+    id: string
+    inboxId: string
+    ownerId: string
+    tx?: DatabaseClient
+  }): Promise<void> {
+    const { workspaceId, id, inboxId, ownerId, tx } = input
 
-    await db.transaction(async (tx) => {
-      await tx
+    const run = async (client: DatabaseClient) => {
+      await client
         .delete(integrationSmtpModel)
-        .where(eq(integrationSmtpModel.id, integration.id))
+        .where(
+          and(
+            eq(integrationSmtpModel.id, id),
+            eq(integrationSmtpModel.workspaceId, workspaceId),
+          ),
+        )
 
       await inboxService.disconnect({
-        inboxId: integration.inboxId,
-        ownerId: workspace.ownerId,
+        inboxId,
+        ownerId,
         workspaceId,
         reason: "manual",
-        tx,
+        tx: client,
       })
-    })
+    }
 
-    await this.audit(
-      "disconnect",
-      `disconnected the SMTP channel (#${integration.id})`,
-    )
+    if (tx) {
+      await run(tx)
+    } else {
+      await db.transaction(run)
+    }
+
+    await this.audit("disconnect", `disconnected the SMTP channel (#${id})`)
   }
 }
 export const integrationSmtpService = new IntegrationSmtpService()

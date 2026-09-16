@@ -118,6 +118,10 @@ export interface FindRichResponseByButtonParams {
 }
 
 export interface FindMessageByIdParams {
+  // Optional: when supplied, the lookup is scoped to this conversation too,
+  // so a message id/createdAt pair belonging to a different conversation in
+  // the same workspace returns null instead of leaking across conversations.
+  conversationId?: string
   createdAt: Date
   id: string
   workspaceId: string
@@ -304,6 +308,18 @@ export interface IMessageRepository {
   ): Promise<string[]>
 
   updateAttachment(params: UpdateAttachmentParams): Promise<void>
+
+  /**
+   * Replaces `contentAttributes` wholesale — it is NOT a merge. Callers hold
+   * the row already and must spread the attributes they want to keep, or they
+   * will drop `postId` and break `{{last_post_id}}`.
+   */
+  updateContentAttributes(
+    messageId: string,
+    workspaceId: string,
+    contentAttributes: Record<string, unknown>,
+    createdAt: Date,
+  ): Promise<{ id: string } | null>
 
   updateMessageAttributes(
     messageId: string,

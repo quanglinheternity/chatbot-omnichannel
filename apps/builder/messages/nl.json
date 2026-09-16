@@ -253,7 +253,7 @@
     "dateFilterPreset": "Voorinstelling voor datumfilter",
     "noResults": "Geen resultaten.",
     "noData": "Geen gegevens",
-    "retentionNotice": "Alleen de gegevens van de afgelopen {days} dagen worden bewaard.",
+    "errorLogRetentionNotice": "Alleen de foutlogboeken van de afgelopen {days} dagen worden bewaard.",
     "comingSoon": "Binnenkort beschikbaar",
     "unknown": "Onbekend",
     "pagination": {
@@ -510,7 +510,40 @@
       "description": "\"{name}\" will continue sending to recipients who have not received it yet."
     }
   },
+  "commentAutomation": {
+    "stats": {
+      "sent": "Verzonden",
+      "delivered": "Afgeleverd",
+      "seen": "Gezien",
+      "clicked": "Geklikt",
+      "failed": "Mislukt",
+      "missed": "Gemist",
+      "noContacts": "Geen contacten gevonden",
+      "noComment": "(geen tekst)",
+      "pageInfo": "Pagina {page} van {pageCount}",
+      "selectedAll": "Alles geselecteerd",
+      "selectedCount": "{count} geselecteerd",
+      "tagAllDialogDescription": "Tags worden aan alle geselecteerde contacten toegevoegd.",
+      "tagDialogDescription": "Tags worden aan {count} contact(en) toegevoegd.",
+      "tagQueued": "{count} contacten worden op de achtergrond getagd.",
+      "loadingMore": "Meer laden...",
+      "receivers": "Ontvangers"
+    },
+    "missReasons": {
+      "outsideSchedule": "Buiten schema",
+      "postNotMatched": "Bericht niet gericht",
+      "commentIsReply": "Reactie op reactie",
+      "keywordsNotMatched": "Trefwoorden kwamen niet overeen",
+      "contactNotNew": "Contact is niet nieuw",
+      "alreadyRepliedOnPost": "Al beantwoord op dit bericht",
+      "engagedOnOtherPost": "Al gereageerd op een ander bericht"
+    }
+  },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "Configuratie-ID voor marketingberichten",
+      "description": "Configuratie-ID van Facebook Login for Business die wordt gebruikt om de marketing_messages_messenger-machtiging aan te vragen."
+    },
     "omnichannel": {
       "label": "Omnichannel"
     },
@@ -646,9 +679,6 @@
     },
     "aiFunction": {
       "label": "AI-functie"
-    },
-    "aiTrigger": {
-      "label": "AI-trigger"
     },
     "alphanumericLength": {
       "label": "Alfanumerieke lengte"
@@ -2438,6 +2468,41 @@
   "general": {
     "title": "Algemeen"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Hiermee verwijder je de campagne alleen uit ChatbotX. De Meta-berichtcampagne blijft lopen — pauzeer of verwijder deze in Advertentiebeheer.",
+    "title": "Facebook Marketing Messages",
+    "description": "Verhoog betrokkenheid en verkoop met gepersonaliseerde promotieberichten op Messenger.",
+    "create": "Nieuw maken",
+    "grantTitle": "Facebook-toegang verlenen",
+    "grantDescription": "Geef toegang om de functie Marketingberichten te gebruiken",
+    "grantAction": "Toegang verlenen",
+    "reconnect": "Opnieuw verbinden",
+    "expiredWarning": "Je Facebook-toegang is verlopen of ingetrokken. Verbind opnieuw om campagnes te maken of te bewerken. Bestaande campagnes worden hieronder weergegeven en zijn alleen-lezen tot je opnieuw verbindt.",
+    "fields": {
+      "image": "Afbeelding",
+      "video": "Video",
+      "page": "Facebook-pagina",
+      "adAccount": "Advertentieaccount",
+      "budgetType": "Budgettype",
+      "budget": "Budget",
+      "daily": "Dagbudget",
+      "lifetime": "Totaalbudget",
+      "templateType": "Berichttype",
+      "text": "Tekst",
+      "button": "Knop",
+      "media": "Media",
+      "generic": "Generiek",
+      "greeting": "Begroeting",
+      "quickReplies": "Snelle antwoorden",
+      "elements": "Kaarten"
+    },
+    "errors": {
+      "notConfigured": "Facebook Marketing Messages is niet geconfigureerd. Vraag je beheerder om de configuratie-ID voor marketingberichten in te stellen.",
+      "notGranted": "Geef toegang om de functie Marketingberichten te gebruiken.",
+      "tosNotAccepted": "Accepteer de voorwaarden voor aangepaste objecten op {url} om deze functie te gebruiken",
+      "notFound": "Marketingbericht niet gevonden."
+    }
+  },
   "facebookAds": {
     "title": "Facebook-advertenties",
     "setting": {
@@ -3417,10 +3482,6 @@
       "description": "Beschrijving van AI-agents",
       "title": "AI-agents"
     },
-    "aiTriggers": {
-      "description": "Beschrijving van AI-triggers",
-      "title": "AI-triggers"
-    },
     "automatedResponses": {
       "title": "Trefwoorden"
     },
@@ -4296,9 +4357,9 @@
     "trackCommentsOn": "Opmerkingen volgen op",
     "trackCommentsOnDescription": "Pas deze automatisering toe op alle berichten op je pagina of beperk deze tot specifieke berichten die je selecteert.",
     "privateReply": "Privéantwoord (inbox)",
-    "privateReplyDescription": "Stuur een privébericht naar de inbox van degene die de opmerking plaatste. Kies een AI-agent, een vaste tekstsjabloon (spintax wordt ondersteund), een chatbotflow of schakel dit uit.",
+    "privateReplyDescription": "Stuur een privébericht naar de inbox van degene die de opmerking plaatste. Kies een AI-agent, een vaste tekstsjabloon, een chatbotflow of schakel dit uit.",
     "publicReply": "Openbaar antwoord op opmerking",
-    "publicReplyDescription": "Plaats een openbaar antwoord direct onder de opmerking. Ondersteunt maximaal 10 tekstsjablonen (spintax wordt ondersteund), een AI-agent, een chatbotflow of geen antwoord.",
+    "publicReplyDescription": "Plaats een openbaar antwoord direct onder de opmerking. Ondersteunt maximaal 10 tekstsjablonen, een AI-agent, een chatbotflow of geen antwoord. Elk bericht wordt als een aparte reactie geplaatst.",
     "replyMessage": "Antwoordbericht",
     "replyMessagePlaceholder": "Voer een antwoordbericht in...",
     "includeKeywordsType": "Antwoorden op",
@@ -4366,8 +4427,8 @@
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Blijf gebruikers beantwoorden die al opmerkingen bij je andere berichten hebben geplaatst.",
       "ignoreCommentReplies": "Antwoorden op opmerkingen niet beantwoorden",
       "ignoreCommentRepliesDescription": "Sla de automatisering over voor opmerkingen die een antwoord zijn op andere opmerkingen en verwerk alleen opmerkingen op het hoogste niveau.",
-      "trackUserTags": "Volgen of een gebruiker andere gebruikers tagt",
-      "trackUserTagsDescription": "Activeer de automatisering wanneer een gebruiker een andere gebruiker tagt of vermeldt in een opmerking."
+      "trackUserTags": "Bijhouden of een gebruiker andere gebruikers tagt",
+      "trackUserTagsDescription": "Gebruik '{{total_tagged}}' om te zien hoeveel gebruikers zijn getagd. Gebruik '{{total_new_tagged}}' om te zien hoeveel van de getagde personen niet in de contactenlijst staan."
     },
     "hideComments": {
       "all": "Alle opmerkingen verbergen",
@@ -4399,9 +4460,9 @@
     "trackCommentsOn": "Opmerkingen volgen op",
     "trackCommentsOnDescription": "Pas deze automatisering toe op alle berichten van je gekoppelde account of beperk deze tot specifieke berichten die je selecteert.",
     "privateReply": "Privéantwoord (inbox)",
-    "privateReplyDescription": "Stuur een privébericht naar de inbox van degene die de opmerking plaatste. Kies een AI-agent, een vaste tekstsjabloon (spintax wordt ondersteund), een chatbotflow of schakel dit uit.",
+    "privateReplyDescription": "Stuur een privébericht naar de inbox van degene die de opmerking plaatste. Kies een AI-agent, een vaste tekstsjabloon, een chatbotflow of schakel dit uit.",
     "publicReply": "Openbaar antwoord op opmerking",
-    "publicReplyDescription": "Plaats een openbaar antwoord direct onder de opmerking. Ondersteunt maximaal 10 tekstsjablonen (spintax wordt ondersteund), een AI-agent, een chatbotflow of geen antwoord.",
+    "publicReplyDescription": "Plaats een openbaar antwoord direct onder de opmerking. Ondersteunt maximaal 10 tekstsjablonen, een AI-agent, een chatbotflow of geen antwoord. Elk bericht wordt als een aparte reactie geplaatst.",
     "replyMessage": "Antwoordbericht",
     "replyMessagePlaceholder": "Voer een antwoordbericht in...",
     "includeKeywordsType": "Antwoorden op",
@@ -4467,7 +4528,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "Gebruikers beantwoorden die opmerkingen bij andere berichten hebben geplaatst",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Blijf gebruikers beantwoorden die al opmerkingen bij je andere berichten hebben geplaatst.",
       "ignoreCommentReplies": "Antwoorden op opmerkingen niet beantwoorden",
-      "ignoreCommentRepliesDescription": "Sla de automatisering over voor opmerkingen die een antwoord zijn op andere opmerkingen en verwerk alleen opmerkingen op het hoogste niveau."
+      "ignoreCommentRepliesDescription": "Sla de automatisering over voor opmerkingen die een antwoord zijn op andere opmerkingen en verwerk alleen opmerkingen op het hoogste niveau.",
+      "trackUserTags": "Bijhouden of een gebruiker andere gebruikers tagt",
+      "trackUserTagsDescription": "Gebruik '{{total_tagged}}' om te zien hoeveel gebruikers zijn getagd. Gebruik '{{total_new_tagged}}' om te zien hoeveel van de getagde personen niet in de contactenlijst staan."
     },
     "hideComments": {
       "all": "Alle opmerkingen verbergen",

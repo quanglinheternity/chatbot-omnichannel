@@ -253,7 +253,7 @@
     "dateFilterPreset": "Bộ lọc ngày đặt sẵn",
     "noResults": "Không có kết quả.",
     "noData": "Không có dữ liệu",
-    "retentionNotice": "Chỉ lưu dữ liệu trong {days} ngày gần nhất.",
+    "errorLogRetentionNotice": "Chỉ lưu nhật ký lỗi trong {days} ngày gần nhất.",
     "comingSoon": "Sắp ra mắt",
     "unknown": "Không xác định",
     "pagination": {
@@ -508,6 +508,35 @@
     "resumeDialog": {
       "title": "Tiếp tục broadcast",
       "description": "\"{name}\" sẽ tiếp tục gửi đến những người nhận chưa nhận được tin."
+    }
+  },
+  "commentAutomation": {
+    "stats": {
+      "sent": "Đã gửi",
+      "delivered": "Đã giao",
+      "seen": "Đã xem",
+      "clicked": "Đã nhấp",
+      "failed": "Thất bại",
+      "missed": "Bỏ lỡ",
+      "noContacts": "Không có liên hệ nào",
+      "noComment": "(không có nội dung)",
+      "pageInfo": "Trang {page} / {pageCount}",
+      "selectedAll": "Đã chọn tất cả",
+      "selectedCount": "Đã chọn {count}",
+      "tagAllDialogDescription": "Thẻ sẽ được gắn cho tất cả liên hệ đã chọn.",
+      "tagDialogDescription": "Thẻ sẽ được gắn cho {count} liên hệ.",
+      "tagQueued": "Đang gắn thẻ cho {count} liên hệ trong nền.",
+      "loadingMore": "Đang tải thêm...",
+      "receivers": "Người nhận"
+    },
+    "missReasons": {
+      "outsideSchedule": "Ngoài khung giờ",
+      "postNotMatched": "Không thuộc bài viết",
+      "commentIsReply": "Là comment trả lời",
+      "keywordsNotMatched": "Sai từ khoá",
+      "contactNotNew": "Contact không mới",
+      "alreadyRepliedOnPost": "Đã trả lời ở bài viết này",
+      "engagedOnOtherPost": "Đã tương tác ở bài viết khác"
     }
   },
   "condition": {
@@ -835,6 +864,10 @@
     "deleteConfirmation": "Bạn có thực sự chắc chắn?\nHành động này không thể hoàn tác.\nĐiều này sẽ xóa vĩnh viễn {feature} khỏi máy chủ của chúng tôi."
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "ID cấu hình Marketing Messages",
+      "description": "ID cấu hình Facebook Login for Business dùng để yêu cầu quyền marketing_messages_messenger."
+    },
     "omnichannel": {
       "label": "Đa kênh"
     },
@@ -965,9 +998,6 @@
     },
     "aiFunction": {
       "label": "AI Function"
-    },
-    "aiTrigger": {
-      "label": "AI Trigger"
     },
     "alphanumericLength": {
       "label": "Độ dài chữ số"
@@ -2575,6 +2605,41 @@
   "general": {
     "title": "Chung"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Thao tác này chỉ xóa chiến dịch khỏi ChatbotX. Chiến dịch tin nhắn Meta vẫn chạy — hãy tạm dừng hoặc xóa trong Trình quản lý quảng cáo.",
+    "title": "Facebook Marketing Messages",
+    "description": "Tăng tương tác và doanh số bằng tin nhắn quảng cáo được cá nhân hóa trên Messenger.",
+    "create": "Tạo mới",
+    "grantTitle": "Cấp quyền truy cập Facebook",
+    "grantDescription": "Vui lòng cấp quyền truy cập để sử dụng tính năng Marketing Messages",
+    "grantAction": "Cấp quyền truy cập",
+    "reconnect": "Kết nối lại",
+    "expiredWarning": "Quyền truy cập Facebook của bạn đã hết hạn hoặc bị thu hồi. Hãy kết nối lại để tạo hoặc chỉnh sửa chiến dịch. Các chiến dịch hiện có được hiển thị bên dưới và ở chế độ chỉ đọc cho đến khi bạn kết nối lại.",
+    "fields": {
+      "image": "Hình ảnh",
+      "video": "Video",
+      "page": "Trang Facebook",
+      "adAccount": "Tài khoản quảng cáo",
+      "budgetType": "Loại ngân sách",
+      "budget": "Ngân sách",
+      "daily": "Ngân sách hằng ngày",
+      "lifetime": "Ngân sách trọn đời",
+      "templateType": "Loại tin nhắn",
+      "text": "Văn bản",
+      "button": "Nút",
+      "media": "Đa phương tiện",
+      "generic": "Chung",
+      "greeting": "Lời chào",
+      "quickReplies": "Trả lời nhanh",
+      "elements": "Thẻ"
+    },
+    "errors": {
+      "notConfigured": "Facebook Marketing Messages chưa được cấu hình. Hãy yêu cầu quản trị viên thiết lập ID cấu hình Marketing Messages.",
+      "notGranted": "Vui lòng cấp quyền truy cập để sử dụng tính năng Marketing Messages.",
+      "tosNotAccepted": "Để sử dụng tính năng này, vui lòng chấp nhận điều khoản đối tượng tùy chỉnh tại {url}",
+      "notFound": "Không tìm thấy tin nhắn marketing."
+    }
+  },
   "facebookAds": {
     "title": "Facebook Ads",
     "setting": {
@@ -3416,10 +3481,6 @@
     "agents": {
       "description": "Mô tả AI Agents",
       "title": "AI Agents"
-    },
-    "aiTriggers": {
-      "description": "Mô tả AI Triggers",
-      "title": "AI Triggers"
     },
     "automatedResponses": {
       "title": "Phản hồi tự động"
@@ -4335,9 +4396,9 @@
     "trackCommentsOn": "Theo dõi bình luận trên",
     "trackCommentsOnDescription": "Áp dụng tự động hóa cho tất cả bài viết trên trang, hoặc chỉ các bài viết cụ thể bạn chọn.",
     "privateReply": "Trả lời riêng tư (inbox)",
-    "privateReplyDescription": "Gửi tin nhắn riêng vào inbox của người comment. Chọn AI Agent, mẫu văn bản cố định (hỗ trợ spintax), chatbot flow, hoặc tắt.",
+    "privateReplyDescription": "Gửi tin nhắn riêng vào inbox của người comment. Chọn AI Agent, mẫu văn bản cố định, chatbot flow, hoặc tắt.",
     "publicReply": "Trả lời công khai bình luận",
-    "publicReplyDescription": "Phản hồi công khai trực tiếp dưới bình luận. Hỗ trợ tối đa 10 mẫu văn bản (hỗ trợ spintax), AI Agent, chatbot flow, hoặc không phản hồi.",
+    "publicReplyDescription": "Phản hồi công khai trực tiếp dưới bình luận. Hỗ trợ tối đa 10 mẫu văn bản, AI Agent, chatbot flow, hoặc không phản hồi. Mỗi đoạn được đăng thành một bình luận trả lời riêng.",
     "replyMessage": "Nội dung trả lời",
     "replyMessagePlaceholder": "Nhập nội dung trả lời...",
     "includeKeywordsType": "Trả lời cho",
@@ -4405,8 +4466,8 @@
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Tiếp tục phản hồi với những người đã comment ở các bài viết khác của bạn.",
       "ignoreCommentReplies": "Không trả lời các reply bình luận",
       "ignoreCommentRepliesDescription": "Bỏ qua tự động hóa với các bình luận là reply vào comment khác (không phải comment gốc).",
-      "trackUserTags": "Theo dõi khi người dùng tag người khác",
-      "trackUserTagsDescription": "Kích hoạt tự động hóa khi người dùng tag hoặc mention người khác trong bình luận."
+      "trackUserTags": "Theo dõi khi người dùng gắn thẻ người khác",
+      "trackUserTagsDescription": "Dùng '{{total_tagged}}' để biết có bao nhiêu người được gắn thẻ. Dùng '{{total_new_tagged}}' để biết có bao nhiêu người được gắn thẻ chưa nằm trong danh sách liên hệ."
     },
     "hideComments": {
       "all": "Ẩn tất cả bình luận",
@@ -4438,9 +4499,9 @@
     "trackCommentsOn": "Theo dõi bình luận trên",
     "trackCommentsOnDescription": "Áp dụng tự động hóa cho tất cả bài viết trên tài khoản đã kết nối, hoặc chỉ các bài viết cụ thể bạn chọn.",
     "privateReply": "Trả lời riêng tư (inbox)",
-    "privateReplyDescription": "Gửi tin nhắn riêng vào inbox của người comment. Chọn AI Agent, mẫu văn bản cố định (hỗ trợ spintax), chatbot flow, hoặc tắt.",
+    "privateReplyDescription": "Gửi tin nhắn riêng vào inbox của người comment. Chọn AI Agent, mẫu văn bản cố định, chatbot flow, hoặc tắt.",
     "publicReply": "Trả lời công khai bình luận",
-    "publicReplyDescription": "Phản hồi công khai trực tiếp dưới bình luận. Hỗ trợ tối đa 10 mẫu văn bản (hỗ trợ spintax), AI Agent, chatbot flow, hoặc không phản hồi.",
+    "publicReplyDescription": "Phản hồi công khai trực tiếp dưới bình luận. Hỗ trợ tối đa 10 mẫu văn bản, AI Agent, chatbot flow, hoặc không phản hồi. Mỗi đoạn được đăng thành một bình luận trả lời riêng.",
     "replyMessage": "Nội dung trả lời",
     "replyMessagePlaceholder": "Nhập nội dung trả lời...",
     "includeKeywordsType": "Trả lời cho",
@@ -4506,7 +4567,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "Trả lời người đã bình luận bài khác",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Tiếp tục phản hồi với những người đã comment ở các bài viết khác của bạn.",
       "ignoreCommentReplies": "Không trả lời các reply bình luận",
-      "ignoreCommentRepliesDescription": "Bỏ qua tự động hóa với các bình luận là reply vào comment khác (không phải comment gốc)."
+      "ignoreCommentRepliesDescription": "Bỏ qua tự động hóa với các bình luận là reply vào comment khác (không phải comment gốc).",
+      "trackUserTags": "Theo dõi khi người dùng gắn thẻ người khác",
+      "trackUserTagsDescription": "Dùng '{{total_tagged}}' để biết có bao nhiêu người được gắn thẻ. Dùng '{{total_new_tagged}}' để biết có bao nhiêu người được gắn thẻ chưa nằm trong danh sách liên hệ."
     },
     "hideComments": {
       "all": "Ẩn tất cả bình luận",

@@ -3,10 +3,6 @@ import { BaseService } from "../base.service"
 import { resolveTenantSettings } from "../platform/settings"
 import { getPublicFileUrl } from "../utils"
 
-// Mirrored in
-// apps/builder/src/features/media-library/constants.ts because
-// @chatbotx.io/business is backend-only and must not be imported from a
-// "use client" component. Keep both values in sync.
 export const MEDIA_LIBRARY_FILES_PAGE_SIZE = 60
 
 export type ListMediaLibraryFilesInput = {
@@ -15,6 +11,7 @@ export type ListMediaLibraryFilesInput = {
   search?: string | null
   filter?: string | null
   page?: number
+  perPage?: number
 }
 
 class MediaLibraryFileService extends BaseService {
@@ -23,9 +20,11 @@ class MediaLibraryFileService extends BaseService {
       workspaceId: input.workspaceId,
     })
 
-    const data = await mediaLibraryFileRepository.list({
+    const perPage = input.perPage ?? MEDIA_LIBRARY_FILES_PAGE_SIZE
+
+    const { data, total } = await mediaLibraryFileRepository.list({
       ...input,
-      perPage: MEDIA_LIBRARY_FILES_PAGE_SIZE,
+      perPage,
     })
 
     return {
@@ -33,6 +32,7 @@ class MediaLibraryFileService extends BaseService {
         ...file,
         url: getPublicFileUrl(file.path, storageUrl),
       })),
+      pageCount: Math.ceil(total / perPage),
     }
   }
 

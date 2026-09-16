@@ -253,7 +253,7 @@
     "dateFilterPreset": "Preset filter tanggal",
     "noResults": "Tidak ada hasil.",
     "noData": "Tidak ada data",
-    "retentionNotice": "Hanya data {days} hari terakhir yang disimpan.",
+    "errorLogRetentionNotice": "Hanya log kesalahan {days} hari terakhir yang disimpan.",
     "comingSoon": "Segera hadir",
     "unknown": "Tidak diketahui",
     "pagination": {
@@ -510,6 +510,35 @@
       "description": "\"{name}\" will continue sending to recipients who have not received it yet."
     }
   },
+  "commentAutomation": {
+    "stats": {
+      "sent": "Terkirim",
+      "delivered": "Tersampaikan",
+      "seen": "Dilihat",
+      "clicked": "Diklik",
+      "failed": "Gagal",
+      "missed": "Terlewat",
+      "noContacts": "Tidak ada kontak yang ditemukan",
+      "noComment": "(tanpa teks)",
+      "pageInfo": "Halaman {page} dari {pageCount}",
+      "selectedAll": "Semua dipilih",
+      "selectedCount": "{count} dipilih",
+      "tagAllDialogDescription": "Tag akan ditambahkan ke semua kontak yang dipilih.",
+      "tagDialogDescription": "Tag akan ditambahkan ke {count} kontak.",
+      "tagQueued": "Memberi tag pada {count} kontak di latar belakang.",
+      "loadingMore": "Memuat lainnya...",
+      "receivers": "Penerima"
+    },
+    "missReasons": {
+      "outsideSchedule": "Di luar jadwal",
+      "postNotMatched": "Postingan tidak ditargetkan",
+      "commentIsReply": "Balasan komentar",
+      "keywordsNotMatched": "Kata kunci tidak cocok",
+      "contactNotNew": "Kontak bukan baru",
+      "alreadyRepliedOnPost": "Sudah dibalas di postingan ini",
+      "engagedOnOtherPost": "Sudah berinteraksi di postingan lain"
+    }
+  },
   "condition": {
     "yes": "Ya",
     "no": "Tidak",
@@ -698,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "ID Konfigurasi Marketing Messages",
+      "description": "ID konfigurasi Facebook Login for Business yang digunakan untuk meminta izin marketing_messages_messenger."
+    },
     "omnichannel": {
       "label": "Omnikanal"
     },
@@ -833,9 +866,6 @@
     },
     "aiFunction": {
       "label": "Fungsi AI"
-    },
-    "aiTrigger": {
-      "label": "Trigger AI"
     },
     "alphanumericLength": {
       "label": "Panjang Alfanumerik"
@@ -2438,6 +2468,41 @@
   "general": {
     "title": "Umum"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Ini hanya menghapus kampanye dari ChatbotX. Kampanye pesan Meta tetap berjalan — jeda atau hapus di Ads Manager.",
+    "title": "Facebook Marketing Messages",
+    "description": "Tingkatkan interaksi dan penjualan dengan pesan promosi yang dipersonalisasi di Messenger.",
+    "create": "Buat Baru",
+    "grantTitle": "Berikan akses Facebook",
+    "grantDescription": "Berikan akses untuk menggunakan fitur Marketing Messages",
+    "grantAction": "Berikan akses",
+    "reconnect": "Hubungkan ulang",
+    "expiredWarning": "Akses Facebook Anda telah kedaluwarsa atau dicabut. Hubungkan ulang untuk membuat atau mengedit kampanye. Kampanye yang ada ditampilkan di bawah dan hanya dapat dibaca sampai Anda menghubungkan ulang.",
+    "fields": {
+      "image": "Gambar",
+      "video": "Video",
+      "page": "Halaman Facebook",
+      "adAccount": "Akun iklan",
+      "budgetType": "Jenis anggaran",
+      "budget": "Anggaran",
+      "daily": "Anggaran harian",
+      "lifetime": "Anggaran total",
+      "templateType": "Jenis pesan",
+      "text": "Teks",
+      "button": "Tombol",
+      "media": "Media",
+      "generic": "Generik",
+      "greeting": "Sapaan",
+      "quickReplies": "Balasan cepat",
+      "elements": "Kartu"
+    },
+    "errors": {
+      "notConfigured": "Facebook Marketing Messages belum dikonfigurasi. Minta administrator Anda untuk menyetel ID Konfigurasi Marketing Messages.",
+      "notGranted": "Berikan akses untuk menggunakan fitur Marketing Messages.",
+      "tosNotAccepted": "Untuk menggunakan fitur ini, setujui ketentuan objek khusus di {url}",
+      "notFound": "Pesan marketing tidak ditemukan."
+    }
+  },
   "facebookAds": {
     "title": "Iklan Facebook",
     "setting": {
@@ -3417,10 +3482,6 @@
       "description": "Deskripsi Agen AI",
       "title": "Agen AI"
     },
-    "aiTriggers": {
-      "description": "Deskripsi Pemicu AI",
-      "title": "Pemicu AI"
-    },
     "automatedResponses": {
       "title": "Kata Kunci"
     },
@@ -4296,9 +4357,9 @@
     "trackCommentsOn": "Lacak komentar pada",
     "trackCommentsOnDescription": "Terapkan otomatisasi ini ke semua postingan di Halaman Anda, atau batasi ke postingan tertentu yang Anda pilih.",
     "privateReply": "Balasan pribadi (kotak masuk)",
-    "privateReplyDescription": "Kirim pesan pribadi ke kotak masuk pemberi komentar. Pilih Agen AI, templat teks tetap (mendukung spintax), alur chatbot, atau nonaktifkan.",
+    "privateReplyDescription": "Kirim pesan pribadi ke kotak masuk pemberi komentar. Pilih Agen AI, templat teks tetap, alur chatbot, atau nonaktifkan.",
     "publicReply": "Balasan publik untuk komentar",
-    "publicReplyDescription": "Kirim balasan publik langsung di bawah komentar. Mendukung hingga 10 templat teks (mendukung spintax), Agen AI, alur chatbot, atau tanpa balasan.",
+    "publicReplyDescription": "Kirim balasan publik langsung di bawah komentar. Mendukung hingga 10 templat teks, Agen AI, alur chatbot, atau tanpa balasan. Setiap pesan diposting sebagai balasan terpisah.",
     "replyMessage": "Pesan balasan",
     "replyMessagePlaceholder": "Masukkan pesan balasan...",
     "includeKeywordsType": "Balas",
@@ -4367,7 +4428,7 @@
       "ignoreCommentReplies": "Jangan balas balasan komentar",
       "ignoreCommentRepliesDescription": "Lewati otomatisasi untuk komentar yang merupakan balasan atas komentar lain, bukan komentar tingkat teratas.",
       "trackUserTags": "Lacak jika pengguna menandai pengguna lain",
-      "trackUserTagsDescription": "Picu otomatisasi saat pengguna menandai atau menyebut pengguna lain dalam komentarnya."
+      "trackUserTagsDescription": "Gunakan '{{total_tagged}}' untuk mengetahui berapa banyak pengguna yang ditandai. Gunakan '{{total_new_tagged}}' untuk mengetahui berapa banyak orang yang ditandai belum ada di daftar kontak."
     },
     "hideComments": {
       "all": "Sembunyikan semua komentar",
@@ -4399,9 +4460,9 @@
     "trackCommentsOn": "Lacak komentar pada",
     "trackCommentsOnDescription": "Terapkan otomatisasi ini ke semua postingan di akun yang terhubung, atau batasi ke postingan tertentu yang Anda pilih.",
     "privateReply": "Balasan pribadi (kotak masuk)",
-    "privateReplyDescription": "Kirim pesan pribadi ke kotak masuk pemberi komentar. Pilih Agen AI, templat teks tetap (mendukung spintax), alur chatbot, atau nonaktifkan.",
+    "privateReplyDescription": "Kirim pesan pribadi ke kotak masuk pemberi komentar. Pilih Agen AI, templat teks tetap, alur chatbot, atau nonaktifkan.",
     "publicReply": "Balasan publik untuk komentar",
-    "publicReplyDescription": "Kirim balasan publik langsung di bawah komentar. Mendukung hingga 10 templat teks (mendukung spintax), Agen AI, alur chatbot, atau tanpa balasan.",
+    "publicReplyDescription": "Kirim balasan publik langsung di bawah komentar. Mendukung hingga 10 templat teks, Agen AI, alur chatbot, atau tanpa balasan. Setiap pesan diposting sebagai balasan terpisah.",
     "replyMessage": "Pesan balasan",
     "replyMessagePlaceholder": "Masukkan pesan balasan...",
     "includeKeywordsType": "Balas",
@@ -4467,7 +4528,9 @@
       "replyToUsersWhoCommentedOnOtherPosts": "Balas pengguna yang berkomentar di postingan lain",
       "replyToUsersWhoCommentedOnOtherPostsDescription": "Terus balas pengguna yang sudah berkomentar di postingan Anda yang lain.",
       "ignoreCommentReplies": "Jangan balas balasan komentar",
-      "ignoreCommentRepliesDescription": "Lewati otomatisasi untuk komentar yang merupakan balasan atas komentar lain, bukan komentar tingkat teratas."
+      "ignoreCommentRepliesDescription": "Lewati otomatisasi untuk komentar yang merupakan balasan atas komentar lain, bukan komentar tingkat teratas.",
+      "trackUserTags": "Lacak jika pengguna menandai pengguna lain",
+      "trackUserTagsDescription": "Gunakan '{{total_tagged}}' untuk mengetahui berapa banyak pengguna yang ditandai. Gunakan '{{total_new_tagged}}' untuk mengetahui berapa banyak orang yang ditandai belum ada di daftar kontak."
     },
     "hideComments": {
       "all": "Sembunyikan semua komentar",

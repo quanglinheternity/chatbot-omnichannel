@@ -36,20 +36,11 @@ function makeSelectChain() {
   const chain: Record<string, unknown> = {}
   chain.from = vi.fn(() => chain)
   chain.innerJoin = vi.fn(() => chain)
-  chain.where = vi.fn((whereArg: { __in?: string[] }) => {
-    // The existence filter is the only query built with `inArray` (mocked to
-    // `{ __in }`); everything else is a scalar COUNT consumed from countResults.
-    if (whereArg && Array.isArray(whereArg.__in)) {
-      const rows = whereArg.__in
-        .filter(
-          (id) =>
-            state.existingUserIds === null || state.existingUserIds.has(id),
-        )
-        .map((id) => ({ id }))
-      return Promise.resolve(rows)
-    }
-    return Promise.resolve([{ count: state.countResults.shift() ?? 0 }])
-  })
+  // Every remaining `db.select` in the handler is a scalar COUNT; the existence
+  // filter moved to `userService.listExistingIds`.
+  chain.where = vi.fn(() =>
+    Promise.resolve([{ count: state.countResults.shift() ?? 0 }]),
+  )
   return chain
 }
 
@@ -78,7 +69,6 @@ vi.mock("@chatbotx.io/database/client", () => ({
   count: vi.fn(() => ({ count: true })),
   countDistinct: mockCountDistinct,
   eq: vi.fn((a: unknown, b: unknown) => ({ eq: [a, b] })),
-  inArray: vi.fn((_column: unknown, values: string[]) => ({ __in: values })),
   isForeignKeyViolationError: vi.fn(
     (error: unknown) =>
       error instanceof Error && error.message.includes("FK violation"),
@@ -109,6 +99,16 @@ vi.mock("@chatbotx.io/business", () => ({
       async () => state.countResults.shift() ?? 0,
     ),
     clearLiveCounters: vi.fn(async () => undefined),
+  },
+  // The ghost-id existence filter now lives on the service, not a raw
+  // `db.select` in the handler. `existingUserIds === null` means every id in the
+  // batch still has a User row.
+  userService: {
+    listExistingIds: vi.fn(async ({ ids }: { ids: string[] }) =>
+      ids.filter(
+        (id) => state.existingUserIds === null || state.existingUserIds.has(id),
+      ),
+    ),
   },
   // Non-reseller users: `findByOwner` returns nothing, so reconcileUser keeps
   // the per-user self-count path these tests exercise.
@@ -142,7 +142,6 @@ vi.mock("@chatbotx.io/database/schema", () => ({
     role: "wm.role",
   },
   workspaceModel: { id: "ws.id", ownerId: "ws.ownerId" },
-  userModel: { id: "user.id" },
 }))
 
 const redisClient = {
