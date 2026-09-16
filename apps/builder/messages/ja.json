@@ -1034,6 +1034,11 @@
       "minutes": "{count, plural, one {#分} other {#分}}",
       "seconds": "{count, plural, one {#秒} other {#秒}}"
     },
+    "botDisableDurationHours": {
+      "description": "人が返信した後、自動返信を何時間停止するかを設定します。",
+      "label": "有人対応後の停止時間",
+      "unit": "時間"
+    },
     "delayType": {
       "label": "遅延タイプ",
       "placeholder": "遅延タイプ"

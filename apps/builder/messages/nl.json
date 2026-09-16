@@ -847,6 +847,11 @@
       "minutes": "{count, plural, one {# minuut} other {# minuten}}",
       "seconds": "{count, plural, one {# seconde} other {# seconden}}"
     },
+    "botDisableDurationHours": {
+      "description": "Stel in hoeveel uur automatische antwoorden worden gepauzeerd na een antwoord van een medewerker.",
+      "label": "Pauze na antwoord van medewerker",
+      "unit": "uur"
+    },
     "delayType": {
       "label": "Vertragingstype",
       "placeholder": "Vertragingstype"

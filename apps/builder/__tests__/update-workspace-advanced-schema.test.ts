@@ -45,3 +45,24 @@ describe("updateWorkspaceAdvancedRequest.defaultReplyFrequency", () => {
     expect(result.data?.defaultReplyFrequency).toBeUndefined()
   })
 })
+
+describe("updateWorkspaceAdvancedRequest.botDisableDurationHours", () => {
+  test("accepts a whole-hour pause from 1 to 720", () => {
+    const result = updateWorkspaceAdvancedRequest.safeParse({
+      ...validBase,
+      botDisableDurationHours: 1,
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.data?.botDisableDurationHours).toBe(1)
+  })
+
+  test.each([0, 721, 1.5])("rejects invalid pause value %s", (value) => {
+    const result = updateWorkspaceAdvancedRequest.safeParse({
+      ...validBase,
+      botDisableDurationHours: value,
+    })
+
+    expect(result.success).toBe(false)
+  })
+})

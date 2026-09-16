@@ -1,4 +1,4 @@
-import { BOT_DISABLE_DURATION_MS } from "@chatbotx.io/business"
+import { conversationService } from "@chatbotx.io/business"
 import { and, db, eq } from "@chatbotx.io/database/client"
 import { conversationModel } from "@chatbotx.io/database/schema"
 import { emit } from "@chatbotx.io/event-bus"
@@ -31,13 +31,18 @@ export class HandoffExecutorService {
     } = request
 
     try {
+      const botResumeAt = new Date(
+        Date.now() +
+          (await conversationService.getBotDisableDurationMs(workspaceId)),
+      )
+
       // Atomic update acts as idempotency guard: only proceeds when bot is still enabled.
       // Using WHERE botEnabled = true eliminates the TOCTOU race between a separate check and update.
       const updated = await db
         .update(conversationModel)
         .set({
           botEnabled: false,
-          botResumeAt: new Date(Date.now() + BOT_DISABLE_DURATION_MS),
+          botResumeAt,
         })
         .where(
           and(

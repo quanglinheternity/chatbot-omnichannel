@@ -23,6 +23,11 @@
       "description": "設定機器人在使用者最後一則訊息後，等待多久才回覆。如果使用者又傳送新訊息，計時器會重設，並將訊息併入單一回應。",
       "label": "機器人回覆延遲"
     },
+    "botDisableDurationHours": {
+      "description": "設定人工回覆後暫停自動回覆的時數。",
+      "label": "人工接管暫停時間",
+      "unit": "小時"
+    },
     "persistentMenu": {
       "label": "常駐選單 {plural, select, 1 {} other {}}",
       "description": "持久選單用於啟動與使用者的對話。",

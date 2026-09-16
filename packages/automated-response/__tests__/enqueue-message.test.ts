@@ -237,4 +237,34 @@ describe("enqueueMessage", () => {
       }),
     )
   })
+
+  test("keeps a paused conversation message queued until handoff expires", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"))
+
+    try {
+      await enqueueMessage({
+        ...enqueueProps,
+        deferUntil: new Date("2026-01-01T01:00:00.000Z"),
+      })
+
+      expect(mockAiAgentQueueAdd).toHaveBeenCalledWith(
+        "processAutomatedResponse",
+        expect.any(Object),
+        expect.objectContaining({
+          delay: 60 * 60 * 1000,
+          deduplication: expect.objectContaining({
+            ttl: (60 * 60 + 2) * 1000,
+          }),
+        }),
+      )
+      expect(mockSimpleQueueEnqueue).toHaveBeenCalledWith(
+        queueKey,
+        "message-1",
+        10_000,
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

@@ -27,10 +27,7 @@ import { useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { useChatStore } from "@/features/chat/store/chat-store-provider"
 import { disableBotAction } from "@/features/conversations/actions/disable-bot.action"
-import {
-  BOT_DISABLE_DURATION_MS,
-  isConversationActive,
-} from "@/features/conversations/utils/bot-state"
+import { isConversationActive } from "@/features/conversations/utils/bot-state"
 import { createMessageAction } from "@/features/messages/actions/create-message.action"
 import { createMessageRequest } from "@/features/messages/schema/mutation"
 import {
@@ -77,11 +74,11 @@ export function SelectFlowDialog({
   const { execute: disableBot } = useAction(
     disableBotAction.bind(null, conversation?.workspaceId ?? ""),
     {
-      onSuccess: () => {
+      onSuccess: ({ data }) => {
         if (conversation) {
           updateConversation(conversation.id, {
             botEnabled: false,
-            botResumeAt: new Date(Date.now() + BOT_DISABLE_DURATION_MS),
+            botResumeAt: data?.botResumeAt ? new Date(data.botResumeAt) : null,
           })
         }
       },

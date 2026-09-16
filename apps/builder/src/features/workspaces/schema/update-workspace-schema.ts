@@ -54,6 +54,9 @@ export const updateWorkspaceAdvancedRequest = z.object({
   timezone: z.enum(allTimezoneCodes as [string, ...string[]]),
   brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   developmentMode: z.boolean(),
+  // Optional for stale clients; omitting it leaves the existing workspace
+  // value untouched while newly rendered forms always submit it.
+  botDisableDurationHours: z.coerce.number().int().min(1).max(720).optional(),
   // Meta Conversions API Limited Data Use (plan #3) — optional so a stale
   // client (form rendered before this field shipped) can still submit;
   // `undefined` is skipped by Drizzle's `.set()`, leaving the stored value

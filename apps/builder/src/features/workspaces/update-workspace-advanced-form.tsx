@@ -3,6 +3,7 @@
 import { defaultReplyFrequencies } from "@chatbotx.io/database/partials"
 import { ColorPickerField } from "@chatbotx.io/ui/components/form/color-picker-field"
 import { ComboboxField } from "@chatbotx.io/ui/components/form/combobox-field"
+import { InputNumberField } from "@chatbotx.io/ui/components/form/input-number-field"
 import { SelectField } from "@chatbotx.io/ui/components/form/select-field"
 import { SwitchField } from "@chatbotx.io/ui/components/form/switch-field"
 import { Button } from "@chatbotx.io/ui/components/ui/button"
@@ -81,6 +82,7 @@ export function UpdateWorkspaceAdvancedForm({
           timezone: normalizeTimezone(workspace.timezone),
           brandColor: workspace.brandColor,
           developmentMode: workspace.developmentMode,
+          botDisableDurationHours: workspace.botDisableDurationHours,
           capiLimitedDataUse: workspace.capiLimitedDataUse,
         },
       },
@@ -178,6 +180,18 @@ export function UpdateWorkspaceAdvancedForm({
               label={t("fields.developmentMode.label")}
             >
               <SwitchField className="mt-1.5" name="developmentMode" />
+            </SettingRow>
+
+            <SettingRow
+              description={t("fields.botDisableDurationHours.description")}
+              label={t("fields.botDisableDurationHours.label")}
+            >
+              <InputNumberField
+                max={720}
+                min={1}
+                name="botDisableDurationHours"
+                suffix={t("fields.botDisableDurationHours.unit")}
+              />
             </SettingRow>
 
             <SettingRow

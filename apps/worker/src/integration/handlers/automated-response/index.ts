@@ -5,7 +5,11 @@ import {
 } from "@chatbotx.io/ai"
 import { aiContextService } from "@chatbotx.io/ai/server"
 import { automatedResponseService } from "@chatbotx.io/automated-response"
-import { aiAgentService, workspaceService } from "@chatbotx.io/business"
+import {
+  aiAgentService,
+  conversationService,
+  workspaceService,
+} from "@chatbotx.io/business"
 import { isMessageStorageError } from "@chatbotx.io/database/errors"
 import {
   aiAgentProviderModels,
@@ -61,6 +65,13 @@ export async function processAutomatedResponse(
       conversationId,
       contactInboxId,
     })
+
+  // Delayed jobs can outlive the human-handoff window that created them. This
+  // fresh DB check both resumes the bot when the window has expired and skips
+  // the job when a human replied again before it became due.
+  if (!(await conversationService.ensureActive(conversation))) {
+    return
+  }
 
   const workspace = await workspaceService.findById({
     id: conversation.workspaceId,

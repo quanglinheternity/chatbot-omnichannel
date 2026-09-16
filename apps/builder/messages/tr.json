@@ -1171,6 +1171,11 @@
       "minutes": "{count, plural, one {# dakika} other {# dakika}}",
       "seconds": "{count, plural, one {# saniye} other {# saniye}}"
     },
+    "botDisableDurationHours": {
+      "description": "Bir insan yanıtından sonra otomatik yanıtların kaç saat duraklatılacağını ayarlayın.",
+      "label": "İnsan yanıtından sonra duraklatma",
+      "unit": "saat"
+    },
     "delayType": {
       "label": "Gecikme Türü",
       "placeholder": "Gecikme Türü"

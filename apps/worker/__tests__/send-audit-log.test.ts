@@ -4,7 +4,6 @@ const mocks = vi.hoisted(() => ({
   dbInsert: vi.fn(),
   dbValues: vi.fn(),
   onConflictDoNothing: vi.fn(),
-  NEXT_PUBLIC_EDITION: "enterprise",
 }))
 
 vi.mock("@chatbotx.io/database/client", () => ({
@@ -37,7 +36,6 @@ beforeEach(() => {
   mocks.onConflictDoNothing.mockResolvedValue(undefined)
   mocks.dbInsert.mockReset()
   mocks.dbInsert.mockReturnValue({ values: mocks.dbValues })
-  mocks.NEXT_PUBLIC_EDITION = "enterprise"
 })
 
 describe("sendAuditLog", () => {
@@ -81,9 +79,7 @@ describe("sendAuditLog", () => {
     expect(mocks.onConflictDoNothing).toHaveBeenCalled()
   })
 
-  test("does not insert audit rows in community edition", async () => {
-    mocks.NEXT_PUBLIC_EDITION = "community"
-
+  test("inserts audit rows in community edition for self-hosted deployments", async () => {
     await sendAuditLog({
       userId: "user-1",
       workspaceId: "workspace-1",
@@ -91,6 +87,13 @@ describe("sendAuditLog", () => {
       detail: "Updated thing",
     })
 
-    expect(mocks.dbInsert).not.toHaveBeenCalled()
+    expect(mocks.dbInsert).toHaveBeenCalledWith("auditLogModel")
+    expect(mocks.dbValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "audit-log-1",
+        userId: "user-1",
+        workspaceId: "workspace-1",
+      }),
+    )
   })
 })

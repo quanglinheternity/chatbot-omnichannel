@@ -1034,6 +1034,11 @@
       "minutes": "{count, plural, one {# minut} other {# minutter}}",
       "seconds": "{count, plural, one {# sekund} other {# sekunder}}"
     },
+    "botDisableDurationHours": {
+      "description": "Sæt hvor mange timer automatiske svar skal sættes på pause efter et menneskeligt svar.",
+      "label": "Pause efter menneskeligt svar",
+      "unit": "timer"
+    },
     "delayType": {
       "label": "Forsinkelse Type",
       "placeholder": "Forsinkelse Type"

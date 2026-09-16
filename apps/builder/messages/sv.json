@@ -2703,6 +2703,11 @@
       "minutes": "{count, plural, one {# minut} other {# minuter}}",
       "seconds": "{count, plural, one {# sekund} other {# sekunder}}"
     },
+    "botDisableDurationHours": {
+      "description": "Ange hur många timmar automatiska svar pausas efter ett mänskligt svar.",
+      "label": "Paus efter mänskligt svar",
+      "unit": "timmar"
+    },
     "sms": {
       "label": "SMS"
     },

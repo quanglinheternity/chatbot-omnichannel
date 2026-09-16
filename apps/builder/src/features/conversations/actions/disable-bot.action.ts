@@ -23,7 +23,7 @@ export const disableBotAction = workspaceActionClient
       parsedInput: BulkUpdateIdsRequest
       ctx: { user: UserModel }
     }) => {
-      await conversationService.setBotEnabledByIds({
+      const botResumeAt = await conversationService.setBotEnabledByIds({
         workspaceId,
         ids: parsedInput.ids,
         botEnabled: false,
@@ -34,5 +34,7 @@ export const disableBotAction = workspaceActionClient
           triggerType: "conversation_transferred_to_human",
         },
       })
+
+      return { botResumeAt: botResumeAt?.getTime() ?? null }
     },
   )
