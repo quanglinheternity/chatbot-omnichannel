@@ -2,7 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "e931e0d8-1a68-4d10-969e-4d125dd20633",
-  "prevIds": ["0077ec9d-def3-4dfe-ba8d-b6fcae0b9570"],
+  "prevIds": ["2cc90f0a-c9e5-4a54-bbc6-7d145ebd7962"],
   "ddl": [
     {
       "values": [
@@ -41286,6 +41286,62 @@
       "entityType": "checks",
       "schema": "public",
       "table": "WhatsappSignupSession"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspaceId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "email",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_contact_workspace_email",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Contact"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspaceId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "phoneNumber",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_contact_workspace_phone_number",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Contact"
     }
   ],
   "renames": []
