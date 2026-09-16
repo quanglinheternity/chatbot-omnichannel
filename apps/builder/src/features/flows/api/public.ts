@@ -8,6 +8,7 @@ import { zodBigintAsString } from "@chatbotx.io/utils"
 import { DefaultJobAction, defaultQueue } from "@chatbotx.io/worker-config"
 import { z } from "zod"
 import { flowVersionResource } from "@/features/flow-versions/schema/resource"
+import { mcpSpec } from "@/lib/orpc/mcp-annotations"
 import {
   possibleErrorsOnCreatingResource,
   possibleErrorsOnDeletingResource,
@@ -16,11 +17,19 @@ import {
   possibleErrorsOnMutatingResource,
 } from "@/lib/orpc/orpc-error-helper"
 import { publicListRequest, publicListResponse } from "@/lib/public-api/list"
+import { publicIdParam } from "@/lib/public-api/params"
 import { workspaceTokenAuthAPIForScope } from "@/orpc"
 import {
-  createFlowSchema,
+  compileAndValidateSpec,
+  compileSpecToGraph,
+} from "../lib/compile-spec-to-graph"
+import { resolveFlowGraphInput } from "../lib/resolve-flow-graph-input"
+import {
+  createFlowRequest,
+  flowSpecRequest,
+  publishFlowRequest,
   publishFlowSchema,
-  updateDraftFlowVersionSchema,
+  updateDraftFlowRequest,
   updateFlowSchema,
 } from "../schema/action"
 import { flowResource, flowWithVersionsResource } from "../schema/resource"
@@ -33,12 +42,20 @@ export const flowsPublicRouter = {
       method: "GET",
       path: "/v1/flows",
       summary: "List flows",
-      description: "Lists active flows in the workspace.",
+      description:
+        "Use this to find flow ids and names before fetching one with `flows.get` or publishing a draft with `flows.publish`. Returns active flows in the workspace.",
       tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
     })
     .input(
       publicListRequest.extend({
-        active: z.boolean().optional().default(true),
+        active: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe(
+            "Restrict to active flows. Set to false to include inactive ones too.",
+          ),
       }),
     )
     .output(publicListResponse(flowResource.pick({ id: true, name: true })))
@@ -58,11 +75,13 @@ export const flowsPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/flows/{id}",
-      summary: "Get a flow by id",
-      description: "Returns a flow with its list of versions.",
+      summary: "Get flow",
+      description:
+        "Use this to inspect one flow and its versions after finding its id with `flows.list`. Call `flows.updateDraft` to change the draft or `flows.publish` to create a version.",
       tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(publicIdParam("flow", "flows.list"))
     .output(flowWithVersionsResource)
     .errors(possibleErrorsOnFindingResource)
     .handler(
@@ -77,22 +96,48 @@ export const flowsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/flows",
-      summary: "Create a flow",
+      summary: "Create flow",
       description:
-        "Creates a new draft flow seeded with a single default start node.",
+        "Creates a flow. With no `spec`/`nodes` it starts a draft with one default start node. Supply `spec` (flow-spec DSL, see `GET /v1/schemas/flow-spec`) or a raw `nodes`/`edges` graph to seed the draft in the same call — node `position`/`measured`, node ids, and edge ids/handles are all generated server-side (a raw node's `id` is only a request-scoped token for wiring `edges`; the response's `nodeIds` maps each authored id to its persisted id). Add `publish: true` to validate the graph exactly like `flows.publish` and create the flow's first version immediately. Use `flows.list` to inspect existing flows first.",
       successStatus: 201,
       tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(createFlowSchema)
-    .output(z.object({ id: z.string() }))
+    .input(createFlowRequest)
+    .output(
+      z.object({
+        id: z.string(),
+        nodeIds: z
+          .optional(z.record(z.string(), z.string()))
+          .describe(
+            "Authored node id → persisted node id, present only when the request sent raw `nodes` (omitted for `spec` input, which has no authored ids).",
+          ),
+      }),
+    )
     .errors(possibleErrorsOnCreatingResource)
-    .handler(
-      async ({ context, input }) =>
-        await flowService.createDraft({
-          workspaceId: context.workspace.id,
-          data: input,
-        }),
-    ),
+    .handler(async ({ context, input }) => {
+      const workspaceId = context.workspace.id
+      const { name, folderId, spec, nodes, edges, publish } = input
+      // Compile/validate before any write, so a rejected graph creates no flow row.
+      const graph = await resolveFlowGraphInput(
+        { spec, nodes, edges },
+        workspaceId,
+        { validate: publish === true },
+      )
+      const flow =
+        publish && graph
+          ? await flowService.createPublished({
+              workspaceId,
+              data: { name, folderId },
+              graph,
+            })
+          : await flowService.createDraft({
+              workspaceId,
+              data: { name, folderId },
+              graph,
+            })
+      return { id: flow.id, nodeIds: graph?.nodeIds }
+    }),
 
   update: workspaceTokenAuthAPI
     .route({
@@ -101,9 +146,10 @@ export const flowsPublicRouter = {
       summary: "Update flow settings",
       description:
         "Partially updates a flow's name, active, or enableInInbox flags.",
+      successStatus: 204,
       tags: ["Flows"],
     })
-    .input(updateFlowSchema.and(z.object({ id: zodBigintAsString() })))
+    .input(updateFlowSchema.and(publicIdParam("flow", "flows.list")))
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
       const { id, ...data } = input
@@ -114,11 +160,13 @@ export const flowsPublicRouter = {
     .route({
       method: "DELETE",
       path: "/v1/flows/{id}",
-      summary: "Delete a flow",
+      summary: "Delete flow",
+      description:
+        "Permanently deletes a flow and its draft/published versions. Use `flows.get` to confirm it first.",
       successStatus: 204,
       tags: ["Flows"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(publicIdParam("flow", "flows.list"))
     .errors(possibleErrorsOnDeletingResource)
     .handler(async ({ context, input }) => {
       await flowService.deleteMany({
@@ -131,12 +179,13 @@ export const flowsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/flows/{id}/duplicate",
-      summary: "Duplicate a flow",
-      description: "Duplicates a flow's draft version into a new flow.",
+      summary: "Duplicate flow",
+      description:
+        "Copies a flow's draft into a new flow. Use `flows.get` to inspect the source first, then call `flows.updateDraft` or `flows.publish` on the returned flow.",
       successStatus: 201,
       tags: ["Flows"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(publicIdParam("flow", "flows.list"))
     .output(z.object({ id: z.string() }))
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
@@ -151,40 +200,73 @@ export const flowsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/flows/{id}/publish",
-      summary: "Publish a flow",
+      summary: "Publish flow",
       description:
-        "Publishes the given nodes/edges as a new immutable version and syncs the draft to match.",
+        "Creates an immutable version from a draft and synchronizes the draft to match. Call `flows.validate` before this when supplying a spec, or use `flows.updateDraft` to save changes without publishing.",
+      successStatus: 204,
       tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(publishFlowSchema.and(z.object({ id: zodBigintAsString() })))
+    .input(publishFlowRequest.and(publicIdParam("flow", "flows.list")))
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
-      const { id, nodes, edges } = input
+      const { id } = input
+      const workspaceId = context.workspace.id
+      const { nodes, edges } =
+        "spec" in input
+          ? await compileAndValidateSpec(input.spec, workspaceId)
+          : input
       await flowVersionService.publish({
-        workspaceId: context.workspace.id,
+        workspaceId,
         flowId: id,
         nodes,
         edges,
       })
     }),
 
+  validate: workspaceTokenAuthAPI
+    .route({
+      method: "POST",
+      path: "/v1/flows/validate",
+      summary: "Compile and validate flow spec without publishing",
+      description:
+        "Compiles a flow-spec DSL object (see `GET /v1/schemas/flow-spec`) and validates the result exactly like `flows.publish` would, without persisting anything. On success, returns the compiled node/edge graph. On failure, returns a 422 with structured errors (`path`/`code`/`message`/`hint`/`candidates`) — fix and retry before calling `flows.publish`.",
+      tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
+    })
+    .input(flowSpecRequest)
+    .output(publishFlowSchema)
+    .errors(possibleErrorsOnMutatingResource)
+    .handler(async ({ context, input }) => {
+      const { nodes, edges } = await compileAndValidateSpec(
+        input.spec,
+        context.workspace.id,
+      )
+      return { nodes, edges }
+    }),
+
   updateDraft: workspaceTokenAuthAPI
     .route({
       method: "PUT",
       path: "/v1/flows/{id}/draft",
-      summary: "Update a flow's draft version",
+      summary: "Update flow draft",
       description:
-        "Overwrites the draft version's nodes/edges in place, without publishing.",
+        "Overwrites the draft version's nodes/edges in place, without publishing. Accepts either the raw `{ nodes, edges }` graph the builder UI sends, or `{ spec }` compiled server-side into that same graph — draft nodes are not otherwise validated (see `flows.validate` to check a spec before writing it). Unlike `flows.create`, a raw node's `id` is persisted verbatim, not remapped, so it must already be a numeric string (the same format `flows.create`'s `nodeIds` response and `flows.get` return).",
+      successStatus: 204,
       tags: ["Flows"],
+      spec: mcpSpec({ visibility: "default" }),
     })
-    .input(
-      updateDraftFlowVersionSchema.and(z.object({ id: zodBigintAsString() })),
-    )
+    .input(updateDraftFlowRequest.and(publicIdParam("flow", "flows.list")))
     .errors(possibleErrorsOnMutatingResource)
     .handler(async ({ context, input }) => {
-      const { id, nodes, edges } = input
+      const { id } = input
+      const workspaceId = context.workspace.id
+      const { nodes, edges } =
+        "spec" in input
+          ? await compileSpecToGraph(input.spec, workspaceId)
+          : input
       await flowVersionService.updateDraftByFlowId({
-        workspaceId: context.workspace.id,
+        workspaceId,
         flowId: id,
         nodes,
         edges,
@@ -195,10 +277,12 @@ export const flowsPublicRouter = {
     .route({
       method: "GET",
       path: "/v1/flows/{id}/versions",
-      summary: "List a flow's published versions",
+      summary: "List flow versions",
+      description:
+        "Returns every immutable version created by `flows.publish` for this flow, most recent first.",
       tags: ["Flows"],
     })
-    .input(z.object({ id: zodBigintAsString() }))
+    .input(publicIdParam("flow", "flows.list"))
     .output(z.object({ data: z.array(flowVersionResource) }))
     .errors(possibleErrorsOnFindingResource)
     .handler(async ({ context, input }) => {
@@ -213,7 +297,7 @@ export const flowsPublicRouter = {
     .route({
       method: "POST",
       path: "/v1/flows/import",
-      summary: "Import a flow from a previously uploaded file",
+      summary: "Import flow from uploaded file",
       description:
         "Queues an async import job for a flow export file uploaded via the Files API. Returns the import id; poll or watch for completion out of band.",
       successStatus: 202,
@@ -221,8 +305,14 @@ export const flowsPublicRouter = {
     })
     .input(
       z.object({
-        fileId: zodBigintAsString(),
-        folderId: zodBigintAsString().nullable(),
+        fileId: zodBigintAsString().describe(
+          "Id (numeric string) of a previously uploaded flow-export file.",
+        ),
+        folderId: zodBigintAsString()
+          .nullable()
+          .describe(
+            "Folder id (numeric string) to import the flow into, or null for no folder.",
+          ),
       }),
     )
     .output(z.object({ importId: z.string() }))

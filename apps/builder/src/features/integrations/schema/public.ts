@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const getIntegrationRequest = z.object({
-  id: z.string(),
+  id: z.string().describe("Integration id. Get it from `integrations.list`."),
 })
 
 export const tokenRefreshErrorChannel = z.enum([
@@ -11,6 +11,7 @@ export const tokenRefreshErrorChannel = z.enum([
   "instagramFacebook",
   "messenger",
   "whatsapp",
+  "threads",
 ])
 
 export const tokenRefreshErrorResource = z.object({

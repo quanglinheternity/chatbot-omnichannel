@@ -131,6 +131,10 @@ export type FacebookLeadAdsAutomationModel =
   typeof schema.facebookLeadAdsAutomationModel.$inferSelect
 export type FacebookLeadAdsLeadModel =
   typeof schema.facebookLeadAdsLeadModel.$inferSelect
+export type FacebookMarketingMessageModel =
+  typeof schema.facebookMarketingMessageModel.$inferSelect
+export type FacebookMarketingMessagesAuthModel =
+  typeof schema.facebookMarketingMessagesAuthModel.$inferSelect
 export type FBCommentAutomationModel =
   typeof schema.fbCommentAutomationModel.$inferSelect
 export type FBCommentAutomationReplyModel =
@@ -176,6 +180,8 @@ export type MinigamePlayModel = typeof schema.minigamePlayModel.$inferSelect
 export type MagicLinkModel = typeof schema.magicLinkModel.$inferSelect
 export type IntegrationInstagramModel =
   typeof schema.integrationInstagramModel.$inferSelect
+export type IntegrationThreadsModel =
+  typeof schema.integrationThreadsModel.$inferSelect
 export type WhatsappMessageTemplateModel =
   typeof schema.whatsappMessageTemplateModel.$inferSelect
 export type MessengerMessageTemplateModel =
@@ -195,6 +201,7 @@ export type WhatsappSignupSessionModel =
 export type InboxWithIntegrations = InboxModel & {
   integrationApi?: IntegrationApiModel | null
   integrationInstagram?: IntegrationInstagramModel | null
+  integrationThreads?: IntegrationThreadsModel | null
   integrationMessenger?: IntegrationMessengerModel | null
   integrationTelegram?: IntegrationTelegramModel | null
   integrationWebchat?: IntegrationWebchatModel | null

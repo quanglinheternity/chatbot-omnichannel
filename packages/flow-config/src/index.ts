@@ -1,4 +1,29 @@
 // Export all definitions
+export {
+  type CompiledFlow,
+  compileFlowSpec,
+  type FlowAuthoringContext,
+} from "./authoring/compile"
+export {
+  type FlowAuthoringError,
+  type FlowAuthoringErrorCode,
+  FlowAuthoringException,
+  formatZodPathSegment,
+  zodErrorToFlowAuthoringErrors,
+} from "./authoring/errors"
+export {
+  type AuthoredEdgeInput,
+  type AuthoredNodeInput,
+  type NormalizedAuthoredGraph,
+  normalizeAuthoredGraph,
+} from "./authoring/normalize-graph"
+export {
+  type FlowSpec,
+  type FlowSpecStepType,
+  type FlowStepSpec,
+  flowSpecSchema,
+  flowSpecStepTypes,
+} from "./authoring/spec-schema"
 export * from "./channel-rules/channel-step-refinement"
 export * from "./channel-rules/channel-validator"
 export * from "./channel-rules/media-step-rules"

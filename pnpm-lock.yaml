@@ -170,6 +170,9 @@ importers:
       '@chatbotx.io/integration-telegram':
         specifier: workspace:*
         version: link:../../integrations/telegram
+      '@chatbotx.io/integration-threads':
+        specifier: workspace:*
+        version: link:../../integrations/threads
       '@chatbotx.io/integration-tiktok':
         specifier: workspace:*
         version: link:../../integrations/tiktok
@@ -763,6 +766,9 @@ importers:
       '@chatbotx.io/integration-telegram':
         specifier: workspace:*
         version: link:../../integrations/telegram
+      '@chatbotx.io/integration-threads':
+        specifier: workspace:*
+        version: link:../../integrations/threads
       '@chatbotx.io/integration-tiktok':
         specifier: workspace:*
         version: link:../../integrations/tiktok
@@ -1606,8 +1612,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/sdk
       nodemailer:
-        specifier: ^8.0.7
-        version: 8.0.10
+        specifier: ^9.1.1
+        version: 9.1.1
       zod:
         specifier: ^4.3.6
         version: 4.4.3
@@ -1667,6 +1673,37 @@ importers:
       msw:
         specifier: ^2.7.3
         version: 2.14.6(@types/node@24.13.1)(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@24.13.1)(@vitest/coverage-v8@4.1.8)(jsdom@25.0.1)(msw@2.14.6(@types/node@24.13.1)(typescript@5.9.3))(vite@7.3.5(@types/node@24.13.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0))
+
+  integrations/threads:
+    dependencies:
+      '@chatbotx.io/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
+      '@chatbotx.io/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      ky:
+        specifier: ^2.0.2
+        version: 2.0.2
+      zod:
+        specifier: ^4.3.6
+        version: 4.4.3
+    devDependencies:
+      '@chatbotx.io/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@chatbotx.io/vitest-config':
+        specifier: workspace:*
+        version: link:../../packages/vitest-config
+      '@types/node':
+        specifier: 24.x
+        version: 24.13.1
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -2509,8 +2546,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       csv-parse:
-        specifier: ^6.2.1
-        version: 6.2.1
+        specifier: ^7.0.2
+        version: 7.0.2
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
@@ -2627,8 +2664,8 @@ importers:
         specifier: ^5.2.0
         version: 5.3.0(svgo@4.0.1)(typescript@5.9.3)
       nodemailer:
-        specifier: ^8.0.7
-        version: 8.0.10
+        specifier: ^9.1.1
+        version: 9.1.1
       zod:
         specifier: ^4.3.6
         version: 4.4.3
@@ -7553,8 +7590,8 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  csv-parse@6.2.1:
-    resolution: {integrity: sha512-LRLMV+UCyfMokp8Wb411duBf1gaBKJfOfBWU9eHMJ+b+cJYZsNu3AFmjJf3+yPGd59Exz1TsMjaSFyxnYB9+IQ==}
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
   currency-codes@2.2.0:
     resolution: {integrity: sha512-vpbQc5sEYHGdTVAYUhHnKv0DWiYLRvzl/KKyqeHzBh7HD/j3UlWoScpZ9tN/jG6w2feddWoObsBbaNVu5yDapg==}
@@ -9524,6 +9561,10 @@ packages:
 
   nodemailer@8.0.10:
     resolution: {integrity: sha512-BLFuSth7QtHOkBzyqTehWWyub0NTRDuK2Q2SQfnGLsrJnzyU+Yeh4WpV1eZGuARFj1xQJHIdnTuJZLP+b9R1GQ==}
+    engines: {node: '>=6.0.0'}
+
+  nodemailer@9.1.1:
+    resolution: {integrity: sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ==}
     engines: {node: '>=6.0.0'}
 
   nopt@7.2.1:
@@ -15508,7 +15549,7 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  csv-parse@6.2.1: {}
+  csv-parse@7.0.2: {}
 
   currency-codes@2.2.0:
     dependencies:
@@ -17818,6 +17859,8 @@ snapshots:
   node-releases@2.0.47: {}
 
   nodemailer@8.0.10: {}
+
+  nodemailer@9.1.1: {}
 
   nopt@7.2.1:
     dependencies:

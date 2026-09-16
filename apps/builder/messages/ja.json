@@ -727,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "マーケティングメッセージ構成ID",
+      "description": "marketing_messages_messenger権限をリクエストするために使用するFacebookログイン（ビジネス用）の構成IDです。"
+    },
     "omnichannel": {
       "label": "オムニチャネル"
     },
@@ -749,6 +753,9 @@
       "viaFacebookTitle": "Facebook経由のInstagram",
       "cloneFromMessenger": "Messengerから複製",
       "clonedFromMessenger": "Messengerから複製済み"
+    },
+    "threads": {
+      "label": "Threads"
     },
     "zalo": {
       "label": "Zalo OA"
@@ -1933,6 +1940,9 @@
     "appSecret": {
       "label": "アプリシークレット"
     },
+    "version": {
+      "label": "バージョン"
+    },
     "webhookVerifyToken": {
       "label": "Webhook検証トークン"
     },
@@ -2459,6 +2469,41 @@
   "general": {
     "title": "一般"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "これはChatbotXからキャンペーンを削除するだけです。Metaのメッセージキャンペーンは実行され続けます — 広告マネージャで一時停止または削除してください。",
+    "title": "Facebookマーケティングメッセージ",
+    "description": "Messengerでパーソナライズされたプロモーションメッセージを送り、エンゲージメントと売上を高めます。",
+    "create": "新規作成",
+    "grantTitle": "Facebookへのアクセスを許可",
+    "grantDescription": "マーケティングメッセージ機能を使用するにはアクセスを許可してください",
+    "grantAction": "アクセスを許可",
+    "reconnect": "再接続",
+    "expiredWarning": "Facebookへのアクセスが期限切れまたは取り消されました。キャンペーンを作成・編集するには再接続してください。既存のキャンペーンは以下に表示され、再接続するまで読み取り専用です。",
+    "fields": {
+      "image": "画像",
+      "video": "動画",
+      "page": "Facebookページ",
+      "adAccount": "広告アカウント",
+      "budgetType": "予算タイプ",
+      "budget": "予算",
+      "daily": "1日の予算",
+      "lifetime": "通算予算",
+      "templateType": "メッセージタイプ",
+      "text": "テキスト",
+      "button": "ボタン",
+      "media": "メディア",
+      "generic": "汎用",
+      "greeting": "あいさつ",
+      "quickReplies": "クイック返信",
+      "elements": "カード"
+    },
+    "errors": {
+      "notConfigured": "Facebookマーケティングメッセージが構成されていません。管理者にマーケティングメッセージ構成IDの設定を依頼してください。",
+      "notGranted": "マーケティングメッセージ機能を使用するにはアクセスを許可してください。",
+      "tosNotAccepted": "この機能を使用するには、{url} でカスタムオブジェクトの規約に同意してください",
+      "notFound": "マーケティングメッセージが見つかりません。"
+    }
+  },
   "facebookAds": {
     "title": "Facebook広告",
     "setting": {
@@ -2954,6 +2999,7 @@
       "instagram": "このInstagramアカウントはすでに別のワークスペースに接続されています。",
       "messenger": "このFacebookページはすでに別のワークスペースに接続されています。",
       "telegram": "このTelegramボットはすでに別のワークスペースに接続されています。",
+      "threads": "このThreadsアカウントはすでに別のワークスペースに接続されています。",
       "tiktok": "このTikTokアカウントはすでに別のワークスペースに接続されています。",
       "whatsapp": "このWhatsApp番号はすでに別のワークスペースに接続されています。",
       "zalo": "このZalo OAはすでに別のワークスペースに接続されています。"
@@ -4490,6 +4536,75 @@
       "instagramDescription": "Instagramログインによる接続です。公開返信、非公開返信、コメントの非表示に対応しています。コメントへの「いいね！」には対応していません。",
       "instagramFacebookTitle": "FacebookでInstagramにログイン",
       "instagramFacebookDescription": "Facebookページ経由で接続されたInstagramです。公開返信、非公開返信、コメントの非表示、コメントへの「いいね！」に対応しています。"
+    }
+  },
+  "threadsCommentAutomation": {
+    "title": "Threads Comment Automation",
+    "description": "Automate public Threads comment replies for your contacts.",
+    "create": "Create Automation",
+    "replies": "Replies",
+    "empty": "No Threads comment automations yet.",
+    "publicOnlyNote": "Threads currently supports public replies only.",
+    "trackCommentsOn": "Track comments on",
+    "publicReply": "Public reply to comment",
+    "publicReplyDescription": "Send a public reply to matching Threads comments.",
+    "replyMessage": "Reply message",
+    "replyFlow": "Reply flow",
+    "replyAIAgent": "Reply AI Agent",
+    "includeKeywordsType": "Reply to",
+    "includeKeywords": "Keywords to match",
+    "excludeKeywords": "Exclude comments with these keywords",
+    "keywordsPlaceholder": "Type and press Enter...",
+    "replyAfter": "Reply after",
+    "replyAfterValue": "Value",
+    "specificPostIds": "Specific post IDs",
+    "postIdPlaceholder": "Enter post IDs and press Enter...",
+    "card": {
+      "targeting": "Targeting & Reply",
+      "filters": "Filters & Options",
+      "replyTiming": "Reply Timing"
+    },
+    "postType": {
+      "all": "All posts",
+      "specificPosts": "Specific posts"
+    },
+    "replyType": {
+      "text": "Text message",
+      "flow": "Flow",
+      "AIAgent": "AI Agent",
+      "none": "No reply"
+    },
+    "keywordsType": {
+      "all": "All comments",
+      "equal": "Exact match",
+      "contain": "Contains"
+    },
+    "replyAfterType": {
+      "immediately": "Immediately",
+      "seconds": "After X seconds",
+      "minutes": "After X minutes",
+      "hours": "After X hours",
+      "randomWithin3Minutes": "Random within 3 minutes",
+      "randomWithin5Minutes": "Random within 5 minutes",
+      "randomWithin10Minutes": "Random within 10 minutes",
+      "randomWithin20Minutes": "Random within 20 minutes",
+      "randomWithin30Minutes": "Random within 30 minutes",
+      "randomWithin60Minutes": "Random within 60 minutes"
+    },
+    "options": {
+      "replyToNewContactsOnly": "Only reply to new contacts",
+      "replyOncePerUserPerPost": "Reply only once to each user per post",
+      "replyToUsersWhoCommentedOnOtherPosts": "Reply to users who commented on other posts",
+      "ignoreCommentReplies": "Don't reply to replies to comments"
+    },
+    "validation": {
+      "postIdsMustBeEmptyForAll": "Post IDs must be empty when targeting all posts.",
+      "postIdsRequired": "Select at least one post ID when targeting specific posts.",
+      "keywordsMustBeEmptyForAll": "Keywords must be empty when matching all comments.",
+      "keywordsRequired": "Enter at least one keyword for the selected match type.",
+      "delayMustBePositive": "Delay value must be greater than zero.",
+      "delayMustBeZero": "Delay value must be zero for the selected timing option.",
+      "atLeastOneFieldRequired": "At least one field is required."
     }
   },
   "instagramStoryAutomation": {

@@ -733,6 +733,7 @@
       "instagram": "Bu Instagram hesabı zaten başka bir çalışma alanına bağlı.",
       "messenger": "Bu Facebook Sayfası zaten başka bir çalışma alanına bağlı.",
       "telegram": "Bu Telegram botu zaten başka bir çalışma alanına bağlı.",
+      "threads": "Bu Threads hesabı zaten başka bir çalışma alanına bağlı.",
       "tiktok": "Bu TikTok hesabı zaten başka bir çalışma alanına bağlı.",
       "whatsapp": "Bu WhatsApp numarası zaten başka bir çalışma alanına bağlı.",
       "zalo": "Bu Zalo OA zaten başka bir çalışma alanına bağlı."
@@ -864,6 +865,10 @@
     "deleteConfirmation": "Kesinlikle emin misiniz?\nBu işlem geri alınamaz.\nBu, {feature} öğenizi sunucularımızdan kalıcı olarak silecektir."
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "Pazarlama Mesajları Yapılandırma Kimliği",
+      "description": "marketing_messages_messenger iznini istemek için kullanılan Facebook Login for Business yapılandırma kimliği."
+    },
     "omnichannel": {
       "label": "Çok Kanallı"
     },
@@ -886,6 +891,9 @@
       "viaFacebookTitle": "Facebook üzerinden Instagram",
       "cloneFromMessenger": "Messenger'dan Klonla",
       "clonedFromMessenger": "Messenger'dan Klonlandı"
+    },
+    "threads": {
+      "label": "Threads"
     },
     "zalo": {
       "label": "Zalo OA"
@@ -2070,6 +2078,9 @@
     "appSecret": {
       "label": "Uygulama Gizli Anahtarı"
     },
+    "version": {
+      "label": "Sürüm"
+    },
     "webhookVerifyToken": {
       "label": "Webhook Doğrulama Anahtarı"
     },
@@ -2595,6 +2606,41 @@
   },
   "general": {
     "title": "Genel"
+  },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Bu, kampanyayı yalnızca ChatbotX'ten kaldırır. Meta mesaj kampanyası çalışmaya devam eder — Reklam Yöneticisi'nde duraklatın veya silin.",
+    "title": "Facebook Pazarlama Mesajları",
+    "description": "Messenger'da kişiselleştirilmiş tanıtım mesajlarıyla etkileşimi ve satışları artırın.",
+    "create": "Yeni Oluştur",
+    "grantTitle": "Facebook erişimi ver",
+    "grantDescription": "Pazarlama Mesajları özelliğini kullanmak için lütfen erişim izni verin",
+    "grantAction": "Erişim ver",
+    "reconnect": "Yeniden bağlan",
+    "expiredWarning": "Facebook erişiminiz sona erdi veya iptal edildi. Kampanya oluşturmak veya düzenlemek için yeniden bağlanın. Mevcut kampanyalar aşağıda gösterilir ve yeniden bağlanana kadar salt okunurdur.",
+    "fields": {
+      "image": "Görsel",
+      "video": "Video",
+      "page": "Facebook Sayfası",
+      "adAccount": "Reklam hesabı",
+      "budgetType": "Bütçe türü",
+      "budget": "Bütçe",
+      "daily": "Günlük bütçe",
+      "lifetime": "Toplam bütçe",
+      "templateType": "Mesaj türü",
+      "text": "Metin",
+      "button": "Düğme",
+      "media": "Medya",
+      "generic": "Genel",
+      "greeting": "Karşılama",
+      "quickReplies": "Hızlı yanıtlar",
+      "elements": "Kartlar"
+    },
+    "errors": {
+      "notConfigured": "Facebook Pazarlama Mesajları yapılandırılmadı. Yöneticinizden Pazarlama Mesajları Yapılandırma Kimliği'ni ayarlamasını isteyin.",
+      "notGranted": "Pazarlama Mesajları özelliğini kullanmak için lütfen erişim izni verin.",
+      "tosNotAccepted": "Bu özelliği kullanmak için {url} adresinde özel nesne koşullarını kabul edin",
+      "notFound": "Pazarlama mesajı bulunamadı."
+    }
   },
   "facebookAds": {
     "title": "Facebook Ads",
@@ -4511,6 +4557,75 @@
       "instagramDescription": "Instagram Login bağlantısı. Genel yanıt, özel yanıt ve yorumları gizlemeyi destekler. Yorumları beğenme desteklenmez.",
       "instagramFacebookTitle": "Facebook ile Instagram Login",
       "instagramFacebookDescription": "Bir Facebook Sayfası üzerinden bağlanan Instagram. Genel yanıt, özel yanıt, yorumları gizleme ve yorumları beğenmeyi destekler."
+    }
+  },
+  "threadsCommentAutomation": {
+    "title": "Threads Comment Automation",
+    "description": "Automate public Threads comment replies for your contacts.",
+    "create": "Create Automation",
+    "replies": "Replies",
+    "empty": "No Threads comment automations yet.",
+    "publicOnlyNote": "Threads currently supports public replies only.",
+    "trackCommentsOn": "Track comments on",
+    "publicReply": "Public reply to comment",
+    "publicReplyDescription": "Send a public reply to matching Threads comments.",
+    "replyMessage": "Reply message",
+    "replyFlow": "Reply flow",
+    "replyAIAgent": "Reply AI Agent",
+    "includeKeywordsType": "Reply to",
+    "includeKeywords": "Keywords to match",
+    "excludeKeywords": "Exclude comments with these keywords",
+    "keywordsPlaceholder": "Type and press Enter...",
+    "replyAfter": "Reply after",
+    "replyAfterValue": "Value",
+    "specificPostIds": "Specific post IDs",
+    "postIdPlaceholder": "Enter post IDs and press Enter...",
+    "card": {
+      "targeting": "Targeting & Reply",
+      "filters": "Filters & Options",
+      "replyTiming": "Reply Timing"
+    },
+    "postType": {
+      "all": "All posts",
+      "specificPosts": "Specific posts"
+    },
+    "replyType": {
+      "text": "Text message",
+      "flow": "Flow",
+      "AIAgent": "AI Agent",
+      "none": "No reply"
+    },
+    "keywordsType": {
+      "all": "All comments",
+      "equal": "Exact match",
+      "contain": "Contains"
+    },
+    "replyAfterType": {
+      "immediately": "Immediately",
+      "seconds": "After X seconds",
+      "minutes": "After X minutes",
+      "hours": "After X hours",
+      "randomWithin3Minutes": "Random within 3 minutes",
+      "randomWithin5Minutes": "Random within 5 minutes",
+      "randomWithin10Minutes": "Random within 10 minutes",
+      "randomWithin20Minutes": "Random within 20 minutes",
+      "randomWithin30Minutes": "Random within 30 minutes",
+      "randomWithin60Minutes": "Random within 60 minutes"
+    },
+    "options": {
+      "replyToNewContactsOnly": "Only reply to new contacts",
+      "replyOncePerUserPerPost": "Reply only once to each user per post",
+      "replyToUsersWhoCommentedOnOtherPosts": "Reply to users who commented on other posts",
+      "ignoreCommentReplies": "Don't reply to replies to comments"
+    },
+    "validation": {
+      "postIdsMustBeEmptyForAll": "Post IDs must be empty when targeting all posts.",
+      "postIdsRequired": "Select at least one post ID when targeting specific posts.",
+      "keywordsMustBeEmptyForAll": "Keywords must be empty when matching all comments.",
+      "keywordsRequired": "Enter at least one keyword for the selected match type.",
+      "delayMustBePositive": "Delay value must be greater than zero.",
+      "delayMustBeZero": "Delay value must be zero for the selected timing option.",
+      "atLeastOneFieldRequired": "At least one field is required."
     }
   },
   "instagramStoryAutomation": {

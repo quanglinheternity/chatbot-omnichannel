@@ -1,9 +1,11 @@
 import {
   appointmentExternalCalendarService,
+  facebookMarketingMessagesService,
   hasWorkspaceAccess,
   instagramIntegrationService,
   integrationFacebookAdsService,
   integrationMetaCatalogService,
+  integrationThreadsService,
   integrationWhatsappService,
   messagingAdsConnectionService,
   messengerIntegrationService,
@@ -11,6 +13,7 @@ import {
   workspaceService,
 } from "@chatbotx.io/business"
 import { auditService, withAuditContext } from "@chatbotx.io/business/audit"
+import { ChatbotXException } from "@chatbotx.io/business/errors"
 import { db } from "@chatbotx.io/database/client"
 import {
   type IntegrationType,
@@ -39,6 +42,11 @@ import {
 import { exchangeLongLivedToken as exchangeMessengerLongLivedToken } from "@chatbotx.io/integration-messenger/apis/page"
 import type { MetaCatalogAuthValue } from "@chatbotx.io/integration-meta-catalog/schemas"
 import {
+  buildThreadsAuthValue,
+  exchangeCodeForToken as exchangeThreadsCode,
+  getThreadsProfile,
+} from "@chatbotx.io/integration-threads"
+import {
   AuthType,
   type AuthValue,
   type Oauth2AuthValue,
@@ -60,13 +68,17 @@ import {
   reconnectInstagramHandler,
 } from "@/features/integration-instagram/actions/reconnect-callback"
 import { reconnectMessengerHandler } from "@/features/integration-messenger/actions/reconnect-callback"
+import { reconnectThreadsHandler } from "@/features/integration-threads/actions/reconnect-callback"
 import { connectTiktokHandler } from "@/features/integration-tiktok/actions/connect.action"
 import { connectZaloHandler } from "@/features/integration-zalo/actions/connect-zalo.action"
 import { reconnectZaloHandler } from "@/features/integration-zalo/actions/reconnect-callback"
 import { integrations } from "@/integration"
 import { assertWorkspaceSuperAdmin } from "@/lib/auth/assert-workspace-super-admin"
 import { getCurrentUser } from "@/lib/auth/utils"
-import { buildReconnectRedirectUrl } from "@/lib/channel-reconnect"
+import {
+  buildChannelErrorRedirectUrl,
+  buildReconnectRedirectUrl,
+} from "@/lib/channel-reconnect"
 import {
   encryptAuth,
   FB_INSTAGRAM_FACEBOOK_PENDING_AUTH_COOKIE,
@@ -90,7 +102,13 @@ const stateValidationSchema = z.object({
   // this flag so the Messenger branch dispatches to the right token-storage /
   // webhook-subscription logic instead of the page picker.
   flow: z
-    .enum(["facebookAds", "facebookLeadAds", "metaCatalog", "messagingAds"])
+    .enum([
+      "facebookAds",
+      "facebookLeadAds",
+      "metaCatalog",
+      "messagingAds",
+      "facebookMarketingMessages",
+    ])
     .optional(),
   // Set by the channel "Reconnect" buttons: the callback refreshes the tokens
   // of this existing integration row (matched against its stored page/account
@@ -136,6 +154,50 @@ const storeFacebookAdsConnection = async (args: {
     workspaceId: args.workspaceId,
     auth: facebookAdsAuth,
     tokenExpiresAt,
+  })
+}
+
+// Exchange the OAuth code for a long-lived token and store it (encrypted) as
+// the workspace's Marketing Messages grant. Deliberately does NOT reuse
+// `storeFacebookAdsConnection`: that writes `IntegrationFacebookAds`, the
+// workspace-wide Ads connection, whose token is granted with a different
+// permission set and must not be overwritten by a Marketing Messages grant.
+const storeMarketingMessagesConnection = async (args: {
+  credentialConfig: { clientId: string; clientSecret: string; version?: string }
+  code: string
+  callbackUrl: string
+  workspaceId: string
+}): Promise<void> => {
+  const shortLivedToken = await exchangeFacebookAdsCode(
+    args.credentialConfig,
+    args.code,
+    args.callbackUrl,
+  )
+  const { accessToken, expiresIn } = await exchangeFacebookAdsLongLivedToken(
+    args.credentialConfig,
+    shortLivedToken,
+  )
+  const tokenExpiresAt = expiresIn
+    ? new Date(Date.now() + expiresIn * 1000)
+    : null
+
+  // Best-effort: the grant must succeed even when the identity lookup fails,
+  // which is why `facebookUserId` is nullable on the row.
+  const fbUser = await lookupFacebookUser(() =>
+    getMessengerFacebookUser(accessToken, args.credentialConfig.version),
+  )
+
+  const auth: FacebookAdsAuthValue = {
+    authType: AuthType.custom,
+    accessToken,
+    expiresAt: tokenExpiresAt?.toISOString(),
+    version: args.credentialConfig.version,
+  }
+  await facebookMarketingMessagesService.upsertAuth({
+    workspaceId: args.workspaceId,
+    auth,
+    tokenExpiresAt,
+    facebookUserId: fbUser?.id,
   })
 }
 
@@ -473,6 +535,29 @@ export const handleCallback = async (
         return redirect(safeReferer)
       }
 
+      // Marketing Messages grant. `withAuditContext` is required for the same
+      // reason the facebookAds branch uses it: this raw OAuth route never
+      // populates the ALS actor context, so `BaseService.audit()` would
+      // silently no-op.
+      if (stateParams.flow === "facebookMarketingMessages") {
+        await withAuditContext(
+          {
+            userId,
+            workspaceId: workspace.id,
+            ipAddress: getGuestClientIp(req.headers),
+            userAgent: req.headers.get("user-agent") ?? undefined,
+          },
+          () =>
+            storeMarketingMessagesConnection({
+              credentialConfig: messengerCredential.config,
+              code,
+              callbackUrl,
+              workspaceId: workspace.id,
+            }),
+        )
+        return redirect(safeReferer)
+      }
+
       if (stateParams.reconnectIntegrationId) {
         const result = await reconnectMessengerHandler({
           credentialConfig: messengerCredential.config,
@@ -659,6 +744,105 @@ export const handleCallback = async (
       return redirect(
         new URL("/channels/instagram-facebook/select", safeReferer).toString(),
       )
+    }
+
+    case "threads": {
+      const threadsCredential = await platformCredentialService.resolveForOwner(
+        {
+          ownerId: platformOwnerId,
+          type: "threads",
+        },
+      )
+      if (!threadsCredential) {
+        return notFound()
+      }
+
+      // Must match the redirect_uri used at authorize time — the tenant's
+      // custom domain for a tenant-owned credential, else the broker.
+      const callbackUrl = await buildProviderCallbackUrl(
+        threadsCredential,
+        "/integrations/threads/callback",
+      )
+      const token = await exchangeThreadsCode(
+        threadsCredential.config,
+        code,
+        callbackUrl,
+      )
+
+      if (stateParams.reconnectIntegrationId) {
+        const result = await reconnectThreadsHandler({
+          credentialConfig: threadsCredential.config,
+          callbackUrl,
+          workspaceId: workspace.id,
+          integrationId: stateParams.reconnectIntegrationId,
+          accessToken: token.accessToken,
+          expiresAt: token.expiresAt,
+        })
+        if (result.status === "success") {
+          await auditService.record({
+            userId,
+            workspaceId: workspace.id,
+            action: "update",
+            detail: "reconnected the Threads channel",
+            ipAddress: getGuestClientIp(req.headers),
+            userAgent: req.headers.get("user-agent") ?? undefined,
+          })
+        }
+        return redirect(buildReconnectRedirectUrl(safeReferer, result))
+      }
+
+      const profile = await getThreadsProfile(
+        token.accessToken,
+        threadsCredential.config.version,
+      )
+      const auth = buildThreadsAuthValue({
+        clientId: threadsCredential.config.clientId,
+        clientSecret: threadsCredential.config.clientSecret,
+        redirectUrl: callbackUrl,
+        version: threadsCredential.config.version,
+        accessToken: token.accessToken,
+        expiresAt: token.expiresAt,
+        threadsUserId: profile.id,
+        username: profile.username,
+      })
+
+      let threadsIntegrationId: string
+      try {
+        const integration = await integrationThreadsService.connect({
+          workspaceId: workspace.id,
+          ownerId: workspace.ownerId,
+          auth,
+          threadsUserId: profile.id,
+          username: profile.username,
+          name: profile.username,
+        })
+        threadsIntegrationId = integration.id
+      } catch (error) {
+        // The account is already connected — here or in another workspace
+        // (`threadsUserId` is globally unique). Surface it as the standard
+        // duplicated-channel toast instead of a 500 page. `redirect()` throws
+        // NEXT_REDIRECT, so it must stay out of the `try` above.
+        if (
+          error instanceof ChatbotXException &&
+          error.code === "channelDuplicated"
+        ) {
+          return redirect(
+            buildChannelErrorRedirectUrl(safeReferer, "duplicated"),
+          )
+        }
+        throw error
+      }
+
+      await auditService.record({
+        userId,
+        workspaceId: workspace.id,
+        action: "connect",
+        detail: `connected a new Threads channel (#${threadsIntegrationId})`,
+        ipAddress: getGuestClientIp(req.headers),
+        userAgent: req.headers.get("user-agent") ?? undefined,
+      })
+
+      return redirect(safeReferer)
     }
 
     case "tiktok": {

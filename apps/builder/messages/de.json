@@ -727,6 +727,10 @@
     }
   },
   "fields": {
+    "marketingMessagesConfigId": {
+      "label": "Marketing-Messages-Konfigurations-ID",
+      "description": "Konfigurations-ID von Facebook Login for Business, die zum Anfordern der Berechtigung marketing_messages_messenger verwendet wird."
+    },
     "omnichannel": {
       "label": "Omnichannel"
     },
@@ -749,6 +753,9 @@
       "viaFacebookTitle": "Instagram über Facebook",
       "cloneFromMessenger": "Von Messenger klonen",
       "clonedFromMessenger": "Von Messenger geklont"
+    },
+    "threads": {
+      "label": "Threads"
     },
     "zalo": {
       "label": "Zalo OA"
@@ -1933,6 +1940,9 @@
     "appSecret": {
       "label": "App-Secret"
     },
+    "version": {
+      "label": "Version"
+    },
     "webhookVerifyToken": {
       "label": "Webhook-Verifizierungstoken"
     },
@@ -2459,6 +2469,41 @@
   "general": {
     "title": "Allgemein"
   },
+  "facebookMarketingMessages": {
+    "deleteWarning": "Dies entfernt die Kampagne nur aus ChatbotX. Die Meta-Nachrichtenkampagne läuft weiter — pausieren oder löschen Sie sie im Werbeanzeigenmanager.",
+    "title": "Facebook Marketing Messages",
+    "description": "Steigern Sie Engagement und Umsatz mit personalisierten Werbenachrichten auf Messenger.",
+    "create": "Neu erstellen",
+    "grantTitle": "Facebook-Zugriff gewähren",
+    "grantDescription": "Bitte gewähren Sie Zugriff, um die Marketing-Messages-Funktion zu nutzen",
+    "grantAction": "Zugriff gewähren",
+    "reconnect": "Neu verbinden",
+    "expiredWarning": "Ihr Facebook-Zugriff ist abgelaufen oder wurde widerrufen. Verbinden Sie sich neu, um Kampagnen zu erstellen oder zu bearbeiten. Bestehende Kampagnen werden unten angezeigt und sind bis zur Neuverbindung schreibgeschützt.",
+    "fields": {
+      "image": "Bild",
+      "video": "Video",
+      "page": "Facebook-Seite",
+      "adAccount": "Werbekonto",
+      "budgetType": "Budgettyp",
+      "budget": "Budget",
+      "daily": "Tagesbudget",
+      "lifetime": "Laufzeitbudget",
+      "templateType": "Nachrichtentyp",
+      "text": "Text",
+      "button": "Schaltfläche",
+      "media": "Medien",
+      "generic": "Generisch",
+      "greeting": "Begrüßung",
+      "quickReplies": "Schnellantworten",
+      "elements": "Karten"
+    },
+    "errors": {
+      "notConfigured": "Facebook Marketing Messages ist nicht konfiguriert. Bitten Sie Ihren Administrator, die Marketing-Messages-Konfigurations-ID festzulegen.",
+      "notGranted": "Bitte gewähren Sie Zugriff, um die Marketing-Messages-Funktion zu nutzen.",
+      "tosNotAccepted": "Um diese Funktion zu nutzen, akzeptieren Sie bitte die Bedingungen für benutzerdefinierte Objekte unter {url}",
+      "notFound": "Marketing-Nachricht nicht gefunden."
+    }
+  },
   "facebookAds": {
     "title": "Facebook Ads",
     "setting": {
@@ -2975,6 +3020,7 @@
       "instagram": "Dieses Instagram-Konto ist bereits mit einem anderen Arbeitsbereich verbunden.",
       "messenger": "Diese Facebook-Seite ist bereits mit einem anderen Arbeitsbereich verbunden.",
       "telegram": "Dieser Telegram-Bot ist bereits mit einem anderen Arbeitsbereich verbunden.",
+      "threads": "Dieses Threads-Konto ist bereits mit einem anderen Arbeitsbereich verbunden.",
       "tiktok": "Dieses TikTok-Konto ist bereits mit einem anderen Arbeitsbereich verbunden.",
       "whatsapp": "Diese WhatsApp-Nummer ist bereits mit einem anderen Arbeitsbereich verbunden.",
       "zalo": "Diese Zalo OA ist bereits mit einem anderen Arbeitsbereich verbunden."
@@ -4511,6 +4557,75 @@
       "instagramDescription": "Verbindung über Instagram Login. Unterstützt öffentliche und private Antworten sowie das Ausblenden von Kommentaren. „Gefällt mir“ für Kommentare wird nicht unterstützt.",
       "instagramFacebookTitle": "Instagram-Anmeldung mit Facebook",
       "instagramFacebookDescription": "Instagram ist über eine Facebook-Seite verbunden. Unterstützt öffentliche und private Antworten, das Ausblenden und das Liken von Kommentaren."
+    }
+  },
+  "threadsCommentAutomation": {
+    "title": "Threads Comment Automation",
+    "description": "Automate public Threads comment replies for your contacts.",
+    "create": "Create Automation",
+    "replies": "Replies",
+    "empty": "No Threads comment automations yet.",
+    "publicOnlyNote": "Threads currently supports public replies only.",
+    "trackCommentsOn": "Track comments on",
+    "publicReply": "Public reply to comment",
+    "publicReplyDescription": "Send a public reply to matching Threads comments.",
+    "replyMessage": "Reply message",
+    "replyFlow": "Reply flow",
+    "replyAIAgent": "Reply AI Agent",
+    "includeKeywordsType": "Reply to",
+    "includeKeywords": "Keywords to match",
+    "excludeKeywords": "Exclude comments with these keywords",
+    "keywordsPlaceholder": "Type and press Enter...",
+    "replyAfter": "Reply after",
+    "replyAfterValue": "Value",
+    "specificPostIds": "Specific post IDs",
+    "postIdPlaceholder": "Enter post IDs and press Enter...",
+    "card": {
+      "targeting": "Targeting & Reply",
+      "filters": "Filters & Options",
+      "replyTiming": "Reply Timing"
+    },
+    "postType": {
+      "all": "All posts",
+      "specificPosts": "Specific posts"
+    },
+    "replyType": {
+      "text": "Text message",
+      "flow": "Flow",
+      "AIAgent": "AI Agent",
+      "none": "No reply"
+    },
+    "keywordsType": {
+      "all": "All comments",
+      "equal": "Exact match",
+      "contain": "Contains"
+    },
+    "replyAfterType": {
+      "immediately": "Immediately",
+      "seconds": "After X seconds",
+      "minutes": "After X minutes",
+      "hours": "After X hours",
+      "randomWithin3Minutes": "Random within 3 minutes",
+      "randomWithin5Minutes": "Random within 5 minutes",
+      "randomWithin10Minutes": "Random within 10 minutes",
+      "randomWithin20Minutes": "Random within 20 minutes",
+      "randomWithin30Minutes": "Random within 30 minutes",
+      "randomWithin60Minutes": "Random within 60 minutes"
+    },
+    "options": {
+      "replyToNewContactsOnly": "Only reply to new contacts",
+      "replyOncePerUserPerPost": "Reply only once to each user per post",
+      "replyToUsersWhoCommentedOnOtherPosts": "Reply to users who commented on other posts",
+      "ignoreCommentReplies": "Don't reply to replies to comments"
+    },
+    "validation": {
+      "postIdsMustBeEmptyForAll": "Post IDs must be empty when targeting all posts.",
+      "postIdsRequired": "Select at least one post ID when targeting specific posts.",
+      "keywordsMustBeEmptyForAll": "Keywords must be empty when matching all comments.",
+      "keywordsRequired": "Enter at least one keyword for the selected match type.",
+      "delayMustBePositive": "Delay value must be greater than zero.",
+      "delayMustBeZero": "Delay value must be zero for the selected timing option.",
+      "atLeastOneFieldRequired": "At least one field is required."
     }
   },
   "instagramStoryAutomation": {
