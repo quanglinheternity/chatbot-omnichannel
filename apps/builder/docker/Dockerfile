@@ -40,6 +40,10 @@ COPY --from=pre /app/out/full/ .
 ENV BETTER_AUTH_SECRET="docker-build-time-placeholder-not-used-at-runtime-0"
 ENV BETTER_AUTH_URL="http://localhost:3000"
 
+# Keep the build process below the ~7.8 GiB GitHub-hosted runner limit: Next's
+# Turbopack also uses native memory outside V8's heap, so a 4 GiB heap can still
+# push the container over the cgroup limit and get killed with exit 137.
+
 # - `.next/cache` cache mount: Turbopack's filesystem cache, local to the build.
 #   Not persisted across CI runs — `turbo.json` excludes `.next/cache/**` from the
 #   build outputs, so restoring it can never turn a turbo cache miss into a hit;
@@ -54,6 +58,7 @@ RUN --mount=type=cache,target=/app/apps/builder/.next/cache \
   --mount=type=secret,id=TURBO_API,env=TURBO_API \
   --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
   --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
+  NODE_OPTIONS="--max-old-space-size=3072" \
   SKIP_ENV_CHECK=true pnpm turbo run build --filter=builder
 
 # Standalone image has no pnpm workspace; bundle a tiny migration runner (drizzle-orm + pg only).
