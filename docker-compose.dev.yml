@@ -15,6 +15,7 @@ x-service-common: &service-common
 
 x-worker-common: &worker-common
   <<: *service-common
+  image: ghcr.io/chatbotxio/chatbotx-worker:latest
   build:
     context: .
     dockerfile: apps/worker/docker/Dockerfile
@@ -22,7 +23,7 @@ x-worker-common: &worker-common
 services:
   builder:
     <<: *service-common
-    # image: chatbotx-builder:latest
+    image: ghcr.io/chatbotxio/chatbotx-builder:latest
     build:
       context: .
       dockerfile: apps/builder/docker/Dockerfile
@@ -36,17 +37,49 @@ services:
       filesystem:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
     environment:
+      - HOSTNAME=0.0.0.0
       - RUN_DB_MIGRATE=true
       - RUN_DB_SEED=true
+      - NODE_OPTIONS=--max-old-space-size=1024
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
 
   # BullMQ Worker
   worker:
     <<: *worker-common
+    command: >
+      bash -c '
+        ROSTER="$${WORKER_ROSTER:-core}"
+        if [ "$$ROSTER" = "core" ]; then
+          TARGETS="ai-agent chat default trigger webhook"
+        elif [ "$$ROSTER" = "all" ]; then
+          TARGETS="ai-agent chat default events heavy integration notification schedule sequence-consumer sequence-producer sequence-scheduler trigger webhook"
+        else
+          TARGETS="$$ROSTER"
+        fi
+        echo "Starting worker roster ($$ROSTER): $$TARGETS"
+        pids=""
+        for w in $$TARGETS; do
+          if [ "$$w" = "sequence-consumer" ]; then
+            script="/app/apps/worker/dist/sequence-scheduler/worker-consumer.mjs"
+          elif [ "$$w" = "sequence-producer" ]; then
+            script="/app/apps/worker/dist/sequence-scheduler/worker-producer.mjs"
+          else
+            script="/app/apps/worker/dist/$$w/worker.mjs"
+          fi
+          /usr/local/bin/node "$$script" &
+          pids="$$pids $$!"
+        done
+        trap "kill -TERM $$pids 2>/dev/null; wait" INT TERM
+        wait
+      '
     networks:
       - chatbotx-network
       - javascript-executor-network
@@ -61,10 +94,17 @@ services:
         condition: service_healthy
     environment:
       - JAVASCRIPT_EXECUTOR_URL=http://javascript-executor:3210
+      - NODE_OPTIONS=--max-old-space-size=768
+      - WORKER_ROSTER=${WORKER_ROSTER:-core}
+    deploy:
+      resources:
+        limits:
+          memory: 4200M
 
   javascript-executor:
     platform: linux/amd64
     restart: unless-stopped
+    image: ghcr.io/chatbotxio/chatbotx-javascript-executor:latest
     build:
       context: .
       dockerfile: apps/javascript-executor/docker/Dockerfile
@@ -85,7 +125,7 @@ services:
       resources:
         limits:
           cpus: "2"
-          memory: 512M
+          memory: 256M
           pids: 128
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3210/health"]
@@ -95,11 +135,22 @@ services:
 
   realtime:
     <<: *service-common
+    image: ghcr.io/chatbotxio/chatbotx-realtime:latest
     build:
       context: .
       dockerfile: apps/realtime/docker/Dockerfile
+    entrypoint: >
+      bash -c "
+        cd /app/apps/realtime;
+        echo \"REALTIME_BROADCAST_SECRET=\$${REALTIME_BROADCAST_SECRET}\" > .env;
+        NODE_OPTIONS=--max-old-space-size=256 HOSTNAME=\${HOSTNAME:-0.0.0.0} PORT=\${PORT:-1999} pnpm dlx partykit dev;
+      "
     ports:
       - "1999:1999"
+    deploy:
+      resources:
+        limits:
+          memory: 700M
 
 networks:
   javascript-executor-network:
