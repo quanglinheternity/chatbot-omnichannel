@@ -2710,6 +2710,11 @@
       "minutes": "{count, plural, one {# minut} other {# minuter}}",
       "seconds": "{count, plural, one {# sekund} other {# sekunder}}"
     },
+    "botDisableDurationHours": {
+      "description": "Ange hur många timmar automatiska svar pausas efter ett mänskligt svar.",
+      "label": "Paus efter mänskligt svar",
+      "unit": "timmar"
+    },
     "sms": {
       "label": "SMS"
     },
@@ -3814,6 +3819,7 @@
     "archiveFeature": "Arkivera {feature}",
     "archiveFeatureDescription": "Är du säker på att du vill arkivera {feature}?",
     "botIsActive": "Boten är aktiv",
+    "botPausedUntil": "Boten återupptas kl. {time}",
     "cancelEdit": "Avbryt",
     "replaceAttachment": "Ersätt bilaga",
     "addAttachment": "Lägg till bilaga",

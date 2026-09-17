@@ -1184,6 +1184,11 @@
       "minutes": "{count, plural, one {# minute} other {# minutes}}",
       "seconds": "{count, plural, one {# second} other {# seconds}}"
     },
+    "botDisableDurationHours": {
+      "description": "After a human replies, pause automated replies for this many hours. The bot resumes when a new customer message arrives after the pause.",
+      "label": "Human handoff pause",
+      "unit": "hours"
+    },
     "delayType": {
       "label": "Delay Type",
       "placeholder": "Delay Type"
@@ -3421,6 +3426,7 @@
     "changeDefaultDescription": "Are you sure you want to change the default AI agent?",
     "unsetDefaultDescription": "Are you sure you want to unset the default AI agent?",
     "botIsActive": "Bot is active",
+    "botPausedUntil": "Bot will resume at {time}",
     "viewPost": "View post",
     "selectConversationTitle": "Select a conversation",
     "selectConversationDescription": "Choose a conversation from the list on the left to view messages and start chatting.",

@@ -39,9 +39,19 @@ vi.mock("@chatbotx.io/utils", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@chatbotx.io/utils")>()
   return {
     ...actual,
-    // The route uses the public URL for host comparison; in tests the request
-    // URL already carries the public host.
-    getPublicUrlFromRequest: (request: Request) => new URL(request.url),
+    getPublicUrlFromRequest: (request: Request) => {
+      const url = new URL(request.url)
+      const host = request.headers.get("x-forwarded-host")
+      const protocol = request.headers.get("x-forwarded-proto")
+      if (host) {
+        url.host = host
+      }
+      if (protocol) {
+        url.protocol = protocol
+      }
+      url.port = ""
+      return url
+    },
   }
 })
 
@@ -131,5 +141,29 @@ describe("auth route — white-label relay", () => {
     expect(mockGetSocialAuthForTenant).not.toHaveBeenCalled()
     expect(defaultHandler).toHaveBeenCalledTimes(1)
     expect(await response.text()).toBe("default")
+  })
+
+  test("passes Better Auth the forwarded public URL instead of the proxy URL", async () => {
+    mockResolveTenantByDomain.mockResolvedValue("1")
+
+    const { POST } = await loadRoute()
+    await POST(
+      new Request("http://localhost:3124/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "x-domain": RESELLER_HOST,
+          "x-forwarded-host": RESELLER_HOST,
+          "x-forwarded-proto": "https",
+        },
+      }),
+    )
+
+    const handledRequest = (
+      defaultHandler.mock.calls[0] as unknown as [Request] | undefined
+    )?.[0]
+    expect(handledRequest).toBeInstanceOf(Request)
+    expect(handledRequest?.url).toBe(
+      `https://${RESELLER_HOST}/api/auth/sign-in/email`,
+    )
   })
 })

@@ -17,7 +17,7 @@ RUN turbo prune builder --docker
 
 # Install dependencies
 FROM base AS deps
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 WORKDIR /app
 COPY --from=pre /app/out/json/ .
@@ -31,18 +31,10 @@ RUN --mount=type=cache,target=/pnpm/store \
 COPY --from=pre /app/out/full/ .
 # COPY --from=pre /app/.env .env
 
-# Build-time placeholders. `next build` evaluates module-level code (better-auth
-# is instantiated when route/instrumentation modules load), so without these the
-# build logs a "Base URL could not be determined" warning and falls back to
-# better-auth's insecure default secret. Build-only: the `release` stage is a
-# fresh `FROM base`, so these never reach the runtime image — real values come
-# from the container environment at runtime.
-ENV BETTER_AUTH_SECRET="docker-build-time-placeholder-not-used-at-runtime-0"
-ENV BETTER_AUTH_URL="http://localhost:3000"
-
-# Keep the build process below the ~7.8 GiB GitHub-hosted runner limit: Next's
-# Turbopack also uses native memory outside V8's heap, so a 4 GiB heap can still
-# push the container over the cgroup limit and get killed with exit 137.
+# Build-time values are scoped to the build command. If BuildKit secrets are
+# supplied, they are used; otherwise these safe placeholders keep module-level
+# better-auth initialization from emitting build warnings. The release stage is
+# a fresh `FROM base`, so neither value reaches the runtime image.
 
 # - `.next/cache` cache mount: Turbopack's filesystem cache, local to the build.
 #   Not persisted across CI runs — `turbo.json` excludes `.next/cache/**` from the
@@ -58,8 +50,12 @@ RUN --mount=type=cache,target=/app/apps/builder/.next/cache \
   --mount=type=secret,id=TURBO_API,env=TURBO_API \
   --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
   --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
-  NODE_OPTIONS="--max-old-space-size=3072" \
-  SKIP_ENV_CHECK=true pnpm turbo run build --filter=builder
+  --mount=type=secret,id=BETTER_AUTH_SECRET,env=BETTER_AUTH_SECRET,required=false \
+  --mount=type=secret,id=BETTER_AUTH_URL,env=BETTER_AUTH_URL,required=false \
+  BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-docker-build-time-placeholder-not-used-at-runtime-0}" \
+  BETTER_AUTH_URL="${BETTER_AUTH_URL:-http://localhost:3000}" \
+  SKIP_ENV_CHECK=true NODE_OPTIONS="--max-old-space-size=3072" \
+  pnpm turbo run build --filter=builder --concurrency=1
 
 # Standalone image has no pnpm workspace; bundle a tiny migration runner (drizzle-orm + pg only).
 RUN apt-get update && apt-get install -y --no-install-recommends jq \

@@ -7,18 +7,15 @@ import {
   MessagesSquareIcon,
   UserRoundIcon,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useAction } from "next-safe-action/hooks"
-import type { ReactNode } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ContactInboxPanel } from "../contacts/contact-inbox-panel"
 import { disableBotAction } from "../conversations/actions/disable-bot.action"
 import ConversationList from "../conversations/conversation-list"
 import type { ConversationResource } from "../conversations/schema/resource"
-import {
-  BOT_DISABLE_DURATION_MS,
-  isConversationActive,
-} from "../conversations/utils/bot-state"
+import { isConversationActive } from "../conversations/utils/bot-state"
 import { MessageInput } from "../messages/components/message-input"
 import MessageHead from "../messages/message-head"
 import { MessageList } from "../messages/message-list"
@@ -93,16 +90,36 @@ export function MessageThreadPane({
   workspaceId: string
 }) {
   const t = useTranslations()
+  const locale = useLocale()
   const updateConversation = useChatStore((state) => state.updateConversation)
+  const [botResumeLabel, setBotResumeLabel] = useState<string | null>(null)
+
+  useEffect(() => {
+    const resumeAt = activeConversation?.botResumeAt
+    if (
+      !(resumeAt && activeConversation) ||
+      isConversationActive(activeConversation)
+    ) {
+      setBotResumeLabel(null)
+      return
+    }
+
+    setBotResumeLabel(
+      new Intl.DateTimeFormat(locale, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(resumeAt)),
+    )
+  }, [activeConversation, locale])
 
   const { execute: disableBot, isExecuting: isDisablingBot } = useAction(
     disableBotAction.bind(null, workspaceId),
     {
-      onSuccess: () => {
+      onSuccess: ({ data }) => {
         if (activeConversation) {
           updateConversation(activeConversation.id, {
             botEnabled: false,
-            botResumeAt: new Date(Date.now() + BOT_DISABLE_DURATION_MS),
+            botResumeAt: data?.botResumeAt ? new Date(data.botResumeAt) : null,
           })
         }
       },
@@ -134,6 +151,14 @@ export function MessageThreadPane({
               <BotIcon />
               {t("messages.botIsActive")}
             </Button>
+          )}
+          {!isConversationActive(activeConversation) && botResumeLabel && (
+            <div
+              aria-live="polite"
+              className="border-b bg-muted/40 px-3 py-2 text-muted-foreground text-sm"
+            >
+              {t("messages.botPausedUntil", { time: botResumeLabel })}
+            </div>
           )}
           <MessageList />
           <MessageInput />

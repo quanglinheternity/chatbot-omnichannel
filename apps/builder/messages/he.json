@@ -1331,6 +1331,7 @@
     "changeDefaultDescription": "האם לשנות את סוכן ה-AI המוגדר כברירת מחדל?",
     "unsetDefaultDescription": "האם לבטל את הגדרת סוכן ה-AI כברירת מחדל?",
     "botIsActive": "הבוט פעיל",
+    "botPausedUntil": "הבוט יחזור לפעול ב־{time}",
     "viewPost": "הצגת פוסט",
     "selectConversationTitle": "בחירת שיחה",
     "selectConversationDescription": "בחרו שיחה מהרשימה מימין כדי להציג הודעות ולהתחיל לשוחח.",
@@ -3797,6 +3798,11 @@
       "label": "השהיית תגובת הבוט",
       "minutes": "{count, plural, one {# דקה} other {# דקות}}",
       "seconds": "{count, plural, one {# שנייה} other {# שניות}}"
+    },
+    "botDisableDurationHours": {
+      "description": "הגדירו לכמה שעות יושהו התשובות האוטומטיות לאחר מענה אנושי.",
+      "label": "השהיה לאחר מענה אנושי",
+      "unit": "שעות"
     },
     "delayType": {
       "label": "סוג השהיה",

@@ -1856,6 +1856,11 @@
       "minutes": "{count, plural, one {# minut} other {# minute}}",
       "seconds": "{count, plural, one {# secundă} other {# secunde}}"
     },
+    "botDisableDurationHours": {
+      "description": "Setează câte ore sunt suspendate răspunsurile automate după un răspuns uman.",
+      "label": "Pauză după răspuns uman",
+      "unit": "ore"
+    },
     "delayType": {
       "label": "Tip de întârziere",
       "placeholder": "Tip de întârziere"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Ești sigur că vrei să schimbi agentul IA implicit?",
     "unsetDefaultDescription": "Ești sigur că vrei să anulezi agentul IA implicit?",
     "botIsActive": "Botul este activ",
+    "botPausedUntil": "Botul va fi reluat la {time}",
     "viewPost": "Vezi postarea",
     "selectConversationTitle": "Selectează o conversație",
     "selectConversationDescription": "Alege o conversație din lista din stânga pentru a vedea mesajele și a începe conversația.",

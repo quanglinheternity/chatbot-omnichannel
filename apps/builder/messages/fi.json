@@ -1037,6 +1037,11 @@
       "minutes": "{count, plural, one {# minuutti} other {# minuuttia}}",
       "seconds": "{count, plural, one {# sekunti} other {# sekuntia}}"
     },
+    "botDisableDurationHours": {
+      "description": "Määritä, kuinka monta tuntia automaattiset vastaukset ovat tauolla ihmisen vastauksen jälkeen.",
+      "label": "Tauko ihmisen vastauksen jälkeen",
+      "unit": "tuntia"
+    },
     "delayType": {
       "label": "Viiveen tyyppi",
       "placeholder": "Viiveen tyyppi"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Haluatko varmasti vaihtaa oletusarvoisen AI-agentin?",
     "unsetDefaultDescription": "Haluatko varmasti poistaa oletusarvoisen AI-agentin asetuksen?",
     "botIsActive": "Botti on aktiivinen",
+    "botPausedUntil": "Botti jatkaa toimintaansa klo {time}",
     "viewPost": "Näytä julkaisu",
     "selectConversationTitle": "Valitse keskustelu",
     "selectConversationDescription": "Valitse vasemmalla olevasta luettelosta keskustelu nähdäksesi viestit ja aloittaaksesi keskustelun.",

@@ -117,4 +117,45 @@ describe("resolveIncomingTextRouting", () => {
 
     expect(isConversationActive).not.toHaveBeenCalled()
   })
+
+  test("defers an actionable message until the human-handoff window expires", async () => {
+    const resumeAt = new Date(Date.now() + 60 * 60 * 1000)
+    const pausedConversation = {
+      ...conversation,
+      botEnabled: false,
+      botResumeAt: resumeAt,
+    }
+    const isConversationActive = vi.fn(async () => false)
+
+    await expect(
+      resolveIncomingTextRouting({
+        conversation: pausedConversation as never,
+        hasActionableInput: true,
+        hasText: true,
+        isConversationActive,
+      }),
+    ).resolves.toEqual({
+      type: "automatedResponse",
+      conversation: pausedConversation,
+      deferUntil: resumeAt,
+    })
+  })
+
+  test("does not defer attachment-only input without a pending challenge", async () => {
+    const pausedConversation = {
+      ...conversation,
+      botEnabled: false,
+      botResumeAt: new Date(Date.now() + 60 * 60 * 1000),
+    }
+    const isConversationActive = vi.fn(async () => false)
+
+    await expect(
+      resolveIncomingTextRouting({
+        conversation: pausedConversation as never,
+        hasActionableInput: true,
+        hasText: false,
+        isConversationActive,
+      }),
+    ).resolves.toEqual({ type: "none" })
+  })
 })

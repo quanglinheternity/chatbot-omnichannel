@@ -1037,6 +1037,11 @@
       "minutes": "{count, plural, one {#分} other {#分}}",
       "seconds": "{count, plural, one {#秒} other {#秒}}"
     },
+    "botDisableDurationHours": {
+      "description": "人が返信した後、自動返信を何時間停止するかを設定します。",
+      "label": "有人対応後の停止時間",
+      "unit": "時間"
+    },
     "delayType": {
       "label": "遅延タイプ",
       "placeholder": "遅延タイプ"
@@ -3213,6 +3218,7 @@
     "changeDefaultDescription": "デフォルトのAIエージェントを変更してもよろしいですか？",
     "unsetDefaultDescription": "デフォルトのAIエージェントを解除してもよろしいですか？",
     "botIsActive": "ボットは有効です",
+    "botPausedUntil": "ボットは{time}に再開します",
     "viewPost": "投稿を表示",
     "selectConversationTitle": "会話を選択",
     "selectConversationDescription": "左側の一覧から会話を選択すると、メッセージを表示してチャットを開始できます。",

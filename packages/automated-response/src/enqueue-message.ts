@@ -17,6 +17,8 @@ export const enqueueMessage = async (props: {
   messageId: string
   messageText?: string
   workspaceId: string
+  /** Defer processing until a human-handoff pause expires. */
+  deferUntil?: Date
 }) => {
   const key = getKey(props)
   let timing = resolveAutomatedResponseTiming(null)
@@ -55,6 +57,21 @@ export const enqueueMessage = async (props: {
     logger.warn(error, "Smart delay lookup failed; using default timing")
   }
 
+  // A message received while a human has control must remain queued until the
+  // configured handoff window expires. Keep the delay and deduplication TTL
+  // aligned so the delayed job can still read the message id from Redis.
+  const deferDelaySeconds = props.deferUntil
+    ? Math.max(0, Math.ceil((props.deferUntil.getTime() - Date.now()) / 1000))
+    : 0
+  const delaySeconds = Math.max(timing.delaySeconds, deferDelaySeconds)
+  const deduplicationTtlSeconds = props.deferUntil
+    ? delaySeconds + timing.ttlSeconds
+    : timing.ttlSeconds
+  const messageQueueTtlSeconds = Math.max(
+    timing.ttlSeconds * 5000,
+    delaySeconds + timing.ttlSeconds + 60,
+  )
+
   try {
     await Promise.all([
       aiAgentQueue.add(
@@ -70,18 +87,18 @@ export const enqueueMessage = async (props: {
         {
           deduplication: {
             id: key,
-            ttl: timing.ttlSeconds * 1000,
+            ttl: deduplicationTtlSeconds * 1000,
             extend: true,
             replace: true,
           },
-          delay: timing.delaySeconds * 1000,
+          delay: delaySeconds * 1000,
           jobId: `automated-response-${props.messageId}`,
         },
       ),
       simpleQueue.enqueue(
         key,
         props.messageId,
-        timing.ttlSeconds * 5000, // keep the key longer than process job
+        messageQueueTtlSeconds, // keep the key longer than process job
       ),
     ])
   } catch (error) {

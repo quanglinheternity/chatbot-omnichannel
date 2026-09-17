@@ -1175,6 +1175,11 @@
       "minutes": "{count, plural, one {# dakika} other {# dakika}}",
       "seconds": "{count, plural, one {# saniye} other {# saniye}}"
     },
+    "botDisableDurationHours": {
+      "description": "Bir insan yanıtından sonra otomatik yanıtların kaç saat duraklatılacağını ayarlayın.",
+      "label": "İnsan yanıtından sonra duraklatma",
+      "unit": "saat"
+    },
     "delayType": {
       "label": "Gecikme Türü",
       "placeholder": "Gecikme Türü"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Varsayılan AI ajanını değiştirmek istediğinizden emin misiniz?",
     "unsetDefaultDescription": "Varsayılan AI ajanını kaldırmak istediğinizden emin misiniz?",
     "botIsActive": "Bot aktif",
+    "botPausedUntil": "Bot {time} tarihinde yeniden başlayacak",
     "viewPost": "Gönderiyi görüntüle",
     "selectConversationTitle": "Bir görüşme seçin",
     "selectConversationDescription": "Mesajları görüntülemek ve sohbete başlamak için soldaki listeden bir görüşme seçin.",

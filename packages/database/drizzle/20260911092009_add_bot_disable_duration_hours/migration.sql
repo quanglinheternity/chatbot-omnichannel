@@ -1,0 +1,1 @@
+ALTER TABLE "Workspace" ADD COLUMN "botDisableDurationHours" integer DEFAULT 24 NOT NULL;

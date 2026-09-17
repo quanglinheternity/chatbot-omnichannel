@@ -1175,6 +1175,11 @@
       "minutes": "{count, plural, one {# minuto} other {# minutos}}",
       "seconds": "{count, plural, one {# segundo} other {# segundos}}"
     },
+    "botDisableDurationHours": {
+      "description": "Define cuántas horas se pausan las respuestas automáticas después de una respuesta humana.",
+      "label": "Pausa tras respuesta humana",
+      "unit": "horas"
+    },
     "delayType": {
       "label": "Tipo de retraso",
       "placeholder": "Tipo de retraso"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Are tú sure tú want un change el predeterminado AI agent?",
     "unsetDefaultDescription": "Are tú sure tú want un unEstablecer el predeterminado AI agent?",
     "botIsActive": "Bot es activo",
+    "botPausedUntil": "El bot se reanudará a las {time}",
     "viewPost": "Ver publicación",
     "selectConversationTitle": "Seleccionar un conversación",
     "selectConversationDescription": "Elegir un conversación desde el list en el left un view mensajes y start chatting.",

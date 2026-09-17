@@ -45,6 +45,9 @@ export const workspaceModel = pgTable(
     timezone: text().notNull().default("UTC"),
     brandColor: text().notNull().default("#016DFF"),
     developmentMode: boolean().default(false).notNull(),
+    // Number of hours to keep automated replies paused after a human reply or
+    // hand-off. A new customer message after this window resumes the bot.
+    botDisableDurationHours: integer().notNull().default(24),
     smartResponseDelaySeconds: integer(),
     isActive: boolean().notNull().default(true),
     startTime: text(),

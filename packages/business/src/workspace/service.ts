@@ -20,7 +20,7 @@ import { dispatchAuditRecord } from "../audit/dispatcher"
 import { BaseService } from "../base.service"
 import { tenantService } from "../enterprise/tenant/service"
 import { notFoundException, workspaceLimitReachedException } from "../errors"
-import { isCommunity } from "../keys"
+import { getCommunityMaxWorkspaces, isCommunity } from "../keys"
 import { logger } from "../logger"
 import { quotaEnforcementService } from "../quota-enforcement/service"
 import { userQuotaService } from "../user-quota/service"
@@ -41,7 +41,6 @@ const stableKey = (where: WorkspaceWhere) =>
   JSON.stringify(Object.fromEntries(Object.entries(where).sort()))
 
 const PURGE_WORKSPACE_TEARDOWN_CONCURRENCY = 5
-const COMMUNITY_MAX_WORKSPACES = 1
 const WORKSPACE_LIMIT_LOCK_TIMEOUT_SECONDS = 30
 
 class WorkspaceService extends BaseService {
@@ -435,7 +434,7 @@ class WorkspaceService extends BaseService {
             workspaceModel,
             eq(workspaceModel.ownerId, ownerId),
           )
-          if (owned >= COMMUNITY_MAX_WORKSPACES) {
+          if (owned >= getCommunityMaxWorkspaces()) {
             throw workspaceLimitReachedException()
           }
           return this.insertWorkspace(props)

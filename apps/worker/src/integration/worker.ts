@@ -200,6 +200,7 @@ async function startIntegrationWorker() {
                     messageId: message.id,
                     messageText: message.text ?? "",
                     workspaceId: routing.conversation.workspaceId,
+                    deferUntil: routing.deferUntil,
                   })
                 } else if (isNotPostbackOrQuickReply) {
                   // Track no response for messages without content or not from contact

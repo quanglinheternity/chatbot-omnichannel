@@ -23,6 +23,11 @@
       "description": "設定機器人在使用者最後一則訊息後，等待多久才回覆。如果使用者又傳送新訊息，計時器會重設，並將訊息併入單一回應。",
       "label": "機器人回覆延遲"
     },
+    "botDisableDurationHours": {
+      "description": "設定人工回覆後暫停自動回覆的時數。",
+      "label": "人工接管暫停時間",
+      "unit": "小時"
+    },
     "persistentMenu": {
       "label": "常駐選單 {plural, select, 1 {} other {}}",
       "description": "持久選單用於啟動與使用者的對話。",
@@ -1550,6 +1555,7 @@
     "changeDefaultDescription": "您確定要更改預設 AI Agent 嗎？",
     "unsetDefaultDescription": "您確定要取消預設 AI Agent 嗎？",
     "botIsActive": "機器人已啟用",
+    "botPausedUntil": "機器人將於 {time} 恢復",
     "viewPost": "檢視貼文",
     "selectConversationTitle": "選擇對話",
     "selectConversationDescription": "從左側清單選擇一則對話，以檢視訊息並開始聊天。",

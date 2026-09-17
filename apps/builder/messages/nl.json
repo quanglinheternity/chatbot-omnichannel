@@ -850,6 +850,11 @@
       "minutes": "{count, plural, one {# minuut} other {# minuten}}",
       "seconds": "{count, plural, one {# seconde} other {# seconden}}"
     },
+    "botDisableDurationHours": {
+      "description": "Stel in hoeveel uur automatische antwoorden worden gepauzeerd na een antwoord van een medewerker.",
+      "label": "Pauze na antwoord van medewerker",
+      "unit": "uur"
+    },
     "delayType": {
       "label": "Vertragingstype",
       "placeholder": "Vertragingstype"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Weet je zeker dat je de standaard AI-agent wilt wijzigen?",
     "unsetDefaultDescription": "Weet je zeker dat je de AI-agent niet langer als standaard wilt instellen?",
     "botIsActive": "Bot is actief",
+    "botPausedUntil": "De bot wordt hervat om {time}",
     "viewPost": "Bericht bekijken",
     "selectConversationTitle": "Selecteer een gesprek",
     "selectConversationDescription": "Kies links een gesprek uit de lijst om berichten te bekijken en te chatten.",

@@ -1,0 +1,12 @@
+:3123 {
+  handle_path /ws/* {
+    reverse_proxy host.docker.internal:1999
+  }
+
+  # ngrok terminates TLS before forwarding to this local Caddy instance.
+  # Preserve the public HTTPS scheme for Next.js and Better Auth.
+  reverse_proxy host.docker.internal:3124 {
+    header_up X-Forwarded-Proto https
+    header_up X-Forwarded-Host {host}
+  }
+}

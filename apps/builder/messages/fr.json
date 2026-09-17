@@ -1037,6 +1037,11 @@
       "minutes": "{count, plural, one {# minute} other {# minutes}}",
       "seconds": "{count, plural, one {# seconde} other {# secondes}}"
     },
+    "botDisableDurationHours": {
+      "description": "Définissez pendant combien d’heures les réponses automatiques sont suspendues après une réponse humaine.",
+      "label": "Pause après une réponse humaine",
+      "unit": "heures"
+    },
     "delayType": {
       "label": "Type de délai",
       "placeholder": "Type de délai"
@@ -3234,6 +3239,7 @@
     "changeDefaultDescription": "Voulez-vous vraiment changer l’agent IA par défaut ?",
     "unsetDefaultDescription": "Voulez-vous vraiment retirer l’agent IA par défaut ?",
     "botIsActive": "Le bot est actif",
+    "botPausedUntil": "Le bot reprendra à {time}",
     "viewPost": "Afficher la publication",
     "selectConversationTitle": "Sélectionnez une conversation",
     "selectConversationDescription": "Choisissez une conversation dans la liste de gauche pour afficher les messages et commencer à discuter.",

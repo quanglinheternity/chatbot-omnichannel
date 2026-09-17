@@ -15,7 +15,7 @@ import { CrownIcon, PlusCircleIcon } from "lucide-react"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { UpgradePlanButton } from "@/enterprise/features/billing/upgrade-plan-dialog"
-import { isCloud, isCommunity } from "@/env"
+import { isCloud } from "@/env"
 import { formatScheduleTime } from "../helpers"
 import type { WorkspaceResource } from "../schema/resource"
 import { WorkspaceStatusSwitch } from "./workspace-status-switch"
@@ -197,14 +197,12 @@ const WorkspacesList = async ({
   const createLabel = t("actions.createFeature", {
     feature: t("fields.workspace.label"),
   })
-  const showCreateCard = !isCommunity()
   const ownerIds = new Set(ownerWorkspaceIds)
   const superAdminIds = new Set(superAdminWorkspaceIds)
   const ownerLabel = t("home.owner")
 
   const usedCount = workspaces.length
   const greetingName = user.name?.trim() || user.email
-  const hasWorkspaces = workspaces.length > 0
 
   return (
     // `4rem` is 2x the host page's `py-8` (top inset + matching bottom
@@ -245,44 +243,34 @@ const WorkspacesList = async ({
         the document once the grid bottoms out.
       */}
       <div className="mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain pt-2">
-        {hasWorkspaces || showCreateCard ? (
-          <ul className="flex list-none flex-wrap gap-5 p-0 pb-1">
-            {showCreateCard && (
-              <li className="list-none">
-                <CreateWorkspaceCard
-                  disabled={isAtLimit || blocked}
-                  disabledReason={
-                    blocked
-                      ? t(
-                          reason === "mac"
-                            ? "billing.macLimitReached.createDisabled"
-                            : "billing.trialExpired.createDisabled",
-                          { feature: t("fields.workspace.label") },
-                        )
-                      : t("billing.limitReached.workspaces")
-                  }
-                  label={createLabel}
-                />
-              </li>
-            )}
-            {workspaces.map((workspace) => (
-              <li className="list-none" key={workspace.id}>
-                <WorkspaceCard
-                  canManageStatus={superAdminIds.has(workspace.id)}
-                  ownerLabel={
-                    ownerIds.has(workspace.id) ? ownerLabel : undefined
-                  }
-                  t={t}
-                  workspace={workspace}
-                />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            {t("home.noWorkspaces")}
-          </p>
-        )}
+        <ul className="flex list-none flex-wrap gap-5 p-0 pb-1">
+          <li className="list-none">
+            <CreateWorkspaceCard
+              disabled={isAtLimit || blocked}
+              disabledReason={
+                blocked
+                  ? t(
+                      reason === "mac"
+                        ? "billing.macLimitReached.createDisabled"
+                        : "billing.trialExpired.createDisabled",
+                      { feature: t("fields.workspace.label") },
+                    )
+                  : t("billing.limitReached.workspaces")
+              }
+              label={createLabel}
+            />
+          </li>
+          {workspaces.map((workspace) => (
+            <li className="list-none" key={workspace.id}>
+              <WorkspaceCard
+                canManageStatus={superAdminIds.has(workspace.id)}
+                ownerLabel={ownerIds.has(workspace.id) ? ownerLabel : undefined}
+                t={t}
+                workspace={workspace}
+              />
+            </li>
+          ))}
+        </ul>
       </div>
     </main>
   )
