@@ -93,7 +93,7 @@ function buildSigninUrl(
 
 export const config = {
   matcher: [
-    "/((?!zalo_verifier|pricing|chat-widget|assets|ws|storage|_next/static|_next/image|favicon.ico|avatars|.*.svg|brand|openapi.json|dynamic-image/|mini-game/).*)",
+    "/((?!zalo_verifier|pricing|chat-widget|assets|ws|storage|_next/static|_next/image|_next/hmr|_next/webpack-hmr|favicon.ico|avatars|.*.svg|brand|openapi.json|dynamic-image/|mini-game/).*)",
     "/api/presigned-upload",
   ],
 }
